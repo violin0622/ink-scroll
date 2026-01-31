@@ -12,10 +12,9 @@ import (
 	"play-ddd/utils/xerr"
 )
 
-var (
-	_ outbox.EventRepo = eventRepo{}
-	// _ outbox.Event     = outboxEvent{}
-)
+var _ outbox.EventRepo = eventRepo{}
+
+// _ outbox.Event     = outboxEvent{}
 
 //	type outboxEvent struct {
 //		id            outbox.ID
@@ -76,7 +75,7 @@ func (e eventRepo) tryCommit(err *error, tx *gorm.DB) {
 	}
 
 	if *err != nil {
-		tx.Rollback()
+		*err = tx.Rollback().Error
 	}
 }
 
@@ -97,6 +96,8 @@ func (e *eventBatch) AdvanceCursor(results ...outbox.Result) (err error) {
 	defer xerr.Expect(&err, `advance cursor`)
 
 	e.ec.RelayCursor += uint64(len(results))
+	// A rough implementation that update events one by one.
+	// TODO: group by status first to reduce IO.
 	for i := range results {
 		ev := fromOutbox(results[i])
 		err = e.tx.

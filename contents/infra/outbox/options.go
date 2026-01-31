@@ -1,6 +1,10 @@
 package outbox
 
-import "time"
+import (
+	"time"
+
+	"github.com/go-logr/logr"
+)
 
 // Option is a function that configures a Relay.
 type Option func(*Relay)
@@ -45,4 +49,8 @@ func WithNotify(n <-chan struct{}) Option {
 	return func(r *Relay) {
 		r.notify = n
 	}
+}
+
+func WithLogr(l *logr.Logger) Option {
+	return func(r *Relay) { r.log = l }
 }
