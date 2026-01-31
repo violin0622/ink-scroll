@@ -17,8 +17,8 @@ type (
 	ID    = dtulid.ULID
 	Event struct {
 		ID            ID `gorm:"primarykey"`
-		CreatedTs     ts.Timestamp
-		UpdatedTs     ts.Timestamp
+		CreatedTS     ts.Timestamp
+		UpdatedTS     ts.Timestamp
 		AggregateID   ID
 		AggregateKind string
 		Kind          string
@@ -39,7 +39,7 @@ func (e *Event) FromDomain(de common.Event[novel.ID, novel.ID]) (err error) {
 	e.AggregateID = ID(de.AggID())
 	e.Kind = de.Kind()
 	e.AggregateKind = de.AggKind()
-	e.CreatedTs = ts.From(de.EmittedAt())
+	e.CreatedTS = ts.From(de.EmittedAt())
 	e.Payload, err = de.Payload()
 	return err
 }
@@ -52,7 +52,7 @@ func (e *Event) IntoPB() (pe *novelv1.Event, err error) {
 
 	pe.Id = ulidpb.From(e.ID.Into())
 	pe.AggregateId = ulidpb.From(e.AggregateID.Into())
-	pe.EmitAt = timestamppb.New(e.CreatedTs.Into())
+	pe.EmitAt = timestamppb.New(e.CreatedTS.Into())
 	pe.Kind = e.Kind
 	pe.AggregateKind = e.AggregateKind
 

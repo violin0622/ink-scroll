@@ -36,7 +36,7 @@ type Relay struct {
 	// Runtime
 	ticker *time.Ticker
 	notify <-chan struct{}
-	log    *logr.Logger
+	log    logr.Logger
 
 	mu       sync.Mutex
 	running  bool
@@ -66,6 +66,7 @@ func NewRelay(
 		tickTimeout: 10 * time.Second,
 		notify:      make(<-chan struct{}),
 		instance:    ulid.Make(),
+		log:         logr.Discard(),
 	}
 
 	for _, opt := range opts {

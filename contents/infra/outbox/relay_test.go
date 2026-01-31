@@ -66,3 +66,5 @@ func (eb *mockEventbatch) AdvanceCursor(rs ...outbox.Result) error {
 func (eb *mockEventbatch) PollEvents(outbox.Arg) ([]outbox.Event, error) {
 	panic("unimplemented")
 }
+
+type mockevent struct{}

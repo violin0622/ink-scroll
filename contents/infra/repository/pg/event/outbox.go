@@ -14,24 +14,6 @@ import (
 
 var _ outbox.EventRepo = eventRepo{}
 
-// _ outbox.Event     = outboxEvent{}
-
-//	type outboxEvent struct {
-//		id            outbox.ID
-//		aggregateID   outbox.ID
-//		aggregateKind string
-//		kind          string
-//		emitAt        time.Time
-//		payload       []byte
-//	}
-//
-// func (o outboxEvent) ID() outbox.ID          { return o.id }
-// func (o outboxEvent) AggregateID() outbox.ID { return o.aggregateID }
-// func (o outboxEvent) AggregateKind() string  { return o.aggregateKind }
-// func (o outboxEvent) Kind() string           { return o.kind }
-// func (o outboxEvent) EmitAt() time.Time      { return o.emitAt }
-// func (o outboxEvent) Payload() []byte        { return o.payload }
-//
 // Process implements outbox.EventRepo.
 func (e eventRepo) Process(
 	ctx context.Context,

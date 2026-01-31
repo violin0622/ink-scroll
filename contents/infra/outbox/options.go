@@ -51,6 +51,6 @@ func WithNotify(n <-chan struct{}) Option {
 	}
 }
 
-func WithLogr(l *logr.Logger) Option {
+func WithLogr(l logr.Logger) Option {
 	return func(r *Relay) { r.log = l }
 }
