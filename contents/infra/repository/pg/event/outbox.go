@@ -2,50 +2,37 @@ package event
 
 import (
 	"context"
-	"slices"
-	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
 	"play-ddd/contents/infra/outbox"
+	novelv1 "play-ddd/proto/gen/go/contents/novel/v1"
 	"play-ddd/utils/ptr"
 	"play-ddd/utils/xerr"
-	"play-ddd/utils/xslice"
 )
 
 var (
 	_ outbox.EventRepo = eventRepo{}
-	_ outbox.Event     = outboxEvent{}
+	// _ outbox.Event     = outboxEvent{}
 )
 
-type outboxEvent struct {
-	id            outbox.ID
-	aggregateID   outbox.ID
-	aggregateKind string
-	kind          string
-	emitAt        time.Time
-	payload       []byte
-}
-
-func (o outboxEvent) ID() outbox.ID          { return o.id }
-func (o outboxEvent) AggregateID() outbox.ID { return o.aggregateID }
-func (o outboxEvent) AggregateKind() string  { return o.aggregateKind }
-func (o outboxEvent) Kind() string           { return o.kind }
-func (o outboxEvent) EmitAt() time.Time      { return o.emitAt }
-func (o outboxEvent) Payload() []byte        { return o.payload }
-
-func repo2Outbox(e Event) outboxEvent {
-	return outboxEvent{
-		id:            outbox.ID(e.ID),
-		aggregateID:   outbox.ID(e.AggregateID),
-		aggregateKind: e.AggregateKind,
-		kind:          e.Kind,
-		emitAt:        e.CreatedTs.Into(),
-		payload:       e.Payload,
-	}
-}
-
+//	type outboxEvent struct {
+//		id            outbox.ID
+//		aggregateID   outbox.ID
+//		aggregateKind string
+//		kind          string
+//		emitAt        time.Time
+//		payload       []byte
+//	}
+//
+// func (o outboxEvent) ID() outbox.ID          { return o.id }
+// func (o outboxEvent) AggregateID() outbox.ID { return o.aggregateID }
+// func (o outboxEvent) AggregateKind() string  { return o.aggregateKind }
+// func (o outboxEvent) Kind() string           { return o.kind }
+// func (o outboxEvent) EmitAt() time.Time      { return o.emitAt }
+// func (o outboxEvent) Payload() []byte        { return o.payload }
+//
 // Process implements outbox.EventRepo.
 func (e eventRepo) Process(
 	ctx context.Context,
@@ -127,15 +114,15 @@ func (e *eventBatch) AdvanceCursor(results ...outbox.Result) (err error) {
 	return err
 }
 
-// PollEvents implements outbox.EventsBatch.
-func (e *eventBatch) PollEvents(arg outbox.Arg) (es []outbox.Event, err error) {
+// Poll implements outbox.EventsBatch.
+func (e *eventBatch) Poll(arg outbox.Arg) (es []*novelv1.Event, err error) {
 	defer xerr.Expect(&err, `poll events`)
 
 	var events []Event
 	err = e.tx.
 		Model(Event{}).
 		Where(`"seq">?`, e.ec.RelayCursor).
-		Limit(arg.Max).
+		Limit(arg.Limit).
 		Order(`"seq"`).
 		Find(&events).
 		Error
@@ -143,14 +130,19 @@ func (e *eventBatch) PollEvents(arg outbox.Arg) (es []outbox.Event, err error) {
 		return es, err
 	}
 
-	return slices.Collect(xslice.Map(
-		slices.Values(events),
-		func(e Event) outbox.Event { return repo2Outbox(e) })), nil
+	es = make([]*novelv1.Event, len(events))
+	for i := range events {
+		if es[i], err = events[i].IntoPB(); err != nil {
+			return nil, err
+		}
+	}
+
+	return es, err
 }
 
 func fromOutbox(o outbox.Result) (e Event) {
 	e.ID = ID(o.ID)
 	e.Status = ptr.To(string(o.Status))
 	e.Reason = ptr.To(o.Reason)
-	return
+	return e
 }

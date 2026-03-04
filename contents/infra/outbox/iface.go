@@ -2,7 +2,6 @@ package outbox
 
 import (
 	"context"
-	"time"
 
 	"github.com/oklog/ulid/v2"
 
@@ -26,9 +25,9 @@ type EventRepo interface {
 // The amount of Events and Result in each call are not guaranteed to be the
 // same, but the order must be the same.
 type EventsBatch interface {
-	// PollEvents polls events limited by arg, in order. Events don't have to
+	// Poll polls events limited by arg, in order. Events don't have to
 	// be in same aggregation.
-	PollEvents(Arg) ([]Event, error)
+	Poll(Arg) ([]*novelv1.Event, error)
 
 	// AdvanceCursor pass results, expected them to be persistent.
 	AdvanceCursor(...Result) error
@@ -42,7 +41,7 @@ type EventBus interface {
 // Arg contains arguments for polling events.
 type Arg struct {
 	Instance ID
-	Max      int
+	Limit    int
 }
 
 // Result contains the result of processing an event.
@@ -52,37 +51,25 @@ type Result struct {
 	Reason string
 }
 
-type Evnt struct {
-	ID            ID
-	AggregateID   ID
-	Kind          string
-	AggregateKind string
-	EmitAt        time.Time
-	Payload       []byte
-}
-
 // Status represents the publishing status of an event.
 type Status string
 
 const (
-	StatusPending   Status = "pending"
+	// StatusNone means event was just inserted and have not processed by
+	// outbox.
+	StatusNone Status = ""
+
+	// StatusPending means event has not been processed by outbox,
+	// typically because oneof previous events of same aggregate processed
+	// failed.
+	StatusPending Status = "pending"
+
 	StatusPublished Status = "published"
 	StatusFailed    Status = "failed"
-	StatusDead      Status = "dead" // exceeded max retries
+
+	StatusDead Status = "dead" // exceeded max retries
 )
 
 type (
-	ID    = ulid.ULID
-	Event interface {
-		ID() ID
-		AggregateID() ID
-		Kind() string
-		AggregateKind() string
-		EmitAt() time.Time
-		Payload() []byte
-	}
+	ID = ulid.ULID
 )
-
-type ConvertFailed interface {
-	Onfailed()
-}

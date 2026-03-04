@@ -10,12 +10,8 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/oklog/ulid/v2"
-	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/types/known/anypb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	novelv1 "play-ddd/proto/gen/go/contents/novel/v1"
-	ulidpb "play-ddd/proto/gen/go/ulid"
 	"play-ddd/utils/xerr"
 )
 
@@ -176,14 +172,7 @@ NEXT:
 func (r *Relay) tick() {
 	r.lastTickAt.Store(time.Now())
 
-	ctx, cancel := context.WithTimeoutCause(
-		r.ctx,
-		r.tickTimeout,
-		fmt.Errorf("max duration per tick is %s", r.tickTimeout))
-	defer cancel()
-
-	err := r.repo.Process(r.processEvents(ctx))
-
+	err := r.repo.Process(r.process())
 	if err != nil {
 		r.log.Error(err, "Relay tick failed.")
 		return
@@ -192,12 +181,17 @@ func (r *Relay) tick() {
 	r.log.V(1).Info("Relay ticked.")
 }
 
-func (r *Relay) processEvents(
-	ctx context.Context) (
-	context.Context, func(ef EventsBatch) error,
+func (r *Relay) process() (
+	context.Context, func(EventsBatch) error,
 ) {
-	return ctx, func(ef EventsBatch) error {
-		events, err := ef.PollEvents(Arg{Max: r.maxFetch})
+	ctx, cancel := context.WithTimeoutCause(
+		r.ctx,
+		r.tickTimeout,
+		fmt.Errorf("max duration per tick is %s", r.tickTimeout))
+	defer cancel()
+
+	return ctx, func(eb EventsBatch) error {
+		events, err := eb.Poll(Arg{Limit: r.maxFetch})
 		if err != nil {
 			return err
 		}
@@ -208,9 +202,8 @@ func (r *Relay) processEvents(
 
 		results := make([]Result, len(events))
 		pbEvents := make([]*novelv1.Event, len(events))
-		r.convertEvents(events, pbEvents, results)
 
-		n, err := r.pubEvents(ctx, ef, events, pbEvents, results)
+		n, err := r.pubEvents(ctx, eb, pbEvents, results)
 		if err != nil {
 			r.log.Error(err, "Events processing aborted",
 				"total", len(events),
@@ -221,34 +214,12 @@ func (r *Relay) processEvents(
 	}
 }
 
-func (r *Relay) convertEvents(
-	events []Event,
-	pbEvents []*novelv1.Event,
-	results []Result,
-) {
-	for i := range events {
-		pe, err := fromRepo(events[i])
-		if err == nil {
-			pbEvents[i] = pe
-		} else {
-			results[i].Status = StatusFailed
-			results[i].Reason = err.Error()
-		}
-	}
-}
-
-type msg struct {
-	e   Evnt
-	pbe *novelv1.Event
-	r   Result
-}
-
 // pubEvents publishes events in batches, maintaining order within aggregates.
 // If an event fails, subsequent events in the same aggregate are skipped.
 func (r *Relay) pubEvents(
 	ctx context.Context,
 	ef EventsBatch,
-	events []Event,
+	// events []Event,
 	pbEvents []*novelv1.Event,
 	results []Result,
 ) (n int, err error) {
@@ -267,19 +238,19 @@ func (r *Relay) pubEvents(
 		right := min(left+r.maxPub, len(pbEvents))
 		batch := pbEvents[left:right]
 		batchResults := results[left:right]
-		batchEvents := events[left:right]
+		batchEvents := pbEvents[left:right]
 
 		// Filter out events from failed aggregates
 		toSend := make([]*novelv1.Event, 0, len(batch))
 		toSendIdx := make([]int, 0, len(batch))
 
 		for j, e := range batchEvents {
-			aggID := e.AggregateID()
+			aggID := e.GetAggregateId()
 
 			// Check if this aggregate has failed
-			if _, failed := failedAggs[aggID]; failed {
+			if _, failed := failedAggs[aggID.Into()]; failed {
 				// Skip events from failed aggregates, keep as pending for retry
-				batchResults[j].ID = e.ID()
+				batchResults[j].ID = e.GetId().Into()
 				batchResults[j].Status = StatusPending
 				batchResults[j].Reason = "skipped: previous event in same aggregate failed"
 				continue
@@ -312,7 +283,7 @@ func (r *Relay) pubEvents(
 				batchResults[idx].Status = StatusFailed
 				batchResults[idx].Reason = pubErr.Error()
 				// Mark this aggregate as failed
-				failedAggs[batchEvents[idx].AggregateID()] = struct{}{}
+				failedAggs[batchEvents[idx].GetAggregateId().Into()] = struct{}{}
 			} else {
 				batchResults[idx].Status = StatusPublished
 			}
@@ -324,21 +295,4 @@ func (r *Relay) pubEvents(
 	}
 
 	return len(pbEvents), nil
-}
-
-func fromRepo(e Event) (pe *novelv1.Event, err error) {
-	defer xerr.Expect(&err, "from repo")
-
-	pe = &novelv1.Event{Payload: &anypb.Any{}}
-	if err = protojson.Unmarshal(e.Payload(), pe.GetPayload()); err != nil {
-		return pe, err
-	}
-
-	pe.Id = ulidpb.From(e.ID())
-	pe.AggregateId = ulidpb.From(e.AggregateID())
-	pe.EmitAt = timestamppb.New(e.EmitAt())
-	pe.Kind = e.Kind()
-	pe.AggregateKind = e.AggregateKind()
-
-	return pe, err
 }

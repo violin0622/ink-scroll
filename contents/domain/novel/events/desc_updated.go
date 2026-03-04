@@ -35,11 +35,12 @@ func (t DescUpdated) ID() ID                   { return t.id }
 func (t DescUpdated) Kind() string             { return `DescUpdated` }
 func (t DescUpdated) String() string           { return formatEvent(t) }
 func (t DescUpdated) Payload() ([]byte, error) { return json.Marshal(t) }
-func (t DescUpdated) restore(
-	id, aid ID,
-	at time.Time,
-	payload []byte,
-) (Event, error) {
-	t.id, t.aid, t.at = id, aid, at
-	return t, json.Unmarshal(payload, &t)
-}
+
+// func (t DescUpdated) restore(
+// 	id, aid ID,
+// 	at time.Time,
+// 	payload []byte,
+// ) (Event, error) {
+// 	t.id, t.aid, t.at = id, aid, at
+// 	return t, json.Unmarshal(payload, &t)
+// }

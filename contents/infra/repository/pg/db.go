@@ -79,3 +79,12 @@ func (g postgresRepo) Tx(fn func(app.Repo) error) error {
 		return fn(g.fork(tx))
 	})
 }
+
+func G[N any](g postgresRepo, fn func(app.Repo) (N, error)) (N, error) {
+	var n N
+	return n, g.Tx(func(tx app.Repo) error {
+		var err error
+		n, err = fn(tx)
+		return err
+	})
+}

@@ -9,8 +9,6 @@ import (
 
 var _ Event = (*Completed)(nil)
 
-// _ restorable = (*Completed)(nil)
-
 type Completed struct {
 	id  ID
 	aid ID

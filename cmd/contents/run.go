@@ -97,7 +97,7 @@ func runErr(*cobra.Command, []string) error {
 		fmt.Println(`Server stopped.`)
 	}
 
-	outbox.Stop()
+	_ = outbox.Stop()
 
 	return nil
 }

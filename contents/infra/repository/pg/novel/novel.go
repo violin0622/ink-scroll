@@ -7,7 +7,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"play-ddd/contents/app"
 	"play-ddd/contents/domain/novel"
 	"play-ddd/contents/domain/novel/vo"
 	dt "play-ddd/contents/infra/repository/pg/datatypes"
@@ -15,7 +14,7 @@ import (
 	dtulid "play-ddd/contents/infra/repository/pg/datatypes/ulid"
 )
 
-var _ app.NovelRepo = novelRepo{}
+// var _ app.NovelRepo = novelRepo{}
 
 type ID = dtulid.ULID
 

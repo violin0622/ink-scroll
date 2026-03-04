@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cenkalti/backoff/v5"
-
+	"play-ddd/common/backoff"
 	"play-ddd/contents/app/command"
 	"play-ddd/contents/domain/chapter"
 	"play-ddd/contents/domain/novel"
@@ -16,13 +15,12 @@ func (s *CommandHandler) CreateNovel(
 	id novel.ID, err error,
 ) {
 	retry := -1
-	id, err = backoff.Retry(
+	id, err = backoff.RetryWith(
 		ctx,
 		func() (novel.ID, error) {
 			retry += 1
 			return s.createNovel(ctx, cmd)
-		},
-		backoff.WithMaxTries(3))
+		})
 
 	if retry > 0 {
 		s.stats.reqRetries[`CreateNovel`] += 1
@@ -117,7 +115,18 @@ func (s *CommandHandler) UploadChapter(
 func (s *CommandHandler) UpdateNovel(
 	ctx context.Context, cmd command.UpdateNovelInfo,
 ) error {
-	if err := s.repo.Tx(s.updateNovel(ctx, cmd)); err != nil {
+	retries := -1
+	err := backoff.Retry(ctx, func() error {
+		retries += 1
+		return s.repo.Tx(s.updateNovel(ctx, cmd))
+	})
+
+	if retries > 0 {
+		s.stats.reqRetries[`UpdateNovel`] += 1
+		s.stats.reqRetryTimes[`UpdateNovel`] += uint64(retries)
+	}
+
+	if err != nil {
 		return fmt.Errorf(`update novel: %w`, err)
 	}
 
