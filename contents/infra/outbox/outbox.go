@@ -34,6 +34,15 @@ type EventsBatch interface {
 	AdvanceCursor(...Result) error
 }
 
+type EventBatch interface {
+	// PollEvents polls events limited by arg, in order. Events don't have to
+	// be in same aggregation.
+	PollEvents(Arg) ([]*novelv1.Event, error)
+
+	// AdvanceCursor pass results, expected them to be persistent.
+	AdvanceCursor(...Result) error
+}
+
 // EventBus is the message bus interface for publishing events.
 type EventBus interface {
 	Pub(context.Context, []*novelv1.Event) error
@@ -69,6 +78,11 @@ const (
 	StatusBlocked   Status = "pending"
 	StatusFailed    Status = "failed"
 	StatusDead      Status = "dead" // exceeded max retries
+)
+
+const (
+	ReasonPublishFailed = `Publish Event Failed`
+	ReasonPeviousFailed = `Previous Event Publish Failed`
 )
 
 type (

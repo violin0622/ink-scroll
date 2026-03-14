@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"play-ddd/contents/infra/outbox"
-	novelv1 "play-ddd/proto/gen/go/contents/novel/v1"
-
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/anypb"
+
+	"play-ddd/contents/infra/outbox"
+	novelv1 "play-ddd/proto/gen/go/contents/novel/v1"
 )
 
 const raw = `{"@type":"type.googleapis.com/contents.novel.v1.NovelCreated","authorId":{"ulid":"01KD2Q3EVM65QRM1M28S0ZM7C6"},"title":"My Book Title","description":"My book is good!","tags":["Tokyo","Hot"],"category":"Story"}`
