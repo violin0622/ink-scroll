@@ -190,109 +190,6 @@ func (r *Relay) tick() {
 	r.log.V(1).Info("Relay ticked.")
 }
 
-func (r *Relay) processPbEvents(
-	ctx context.Context,
-) (context.Context, func(EventBatch) error) {
-	return ctx, func(eb EventBatch) error {
-		events, err := eb.PollEvents(Arg{Max: r.maxFetch})
-		if err != nil {
-			return err
-		}
-
-		if len(events) == 0 {
-			return nil
-		}
-
-		if err := r.pubPbEvents(ctx, eb, events); err != nil {
-			return err
-		}
-
-		return nil
-	}
-}
-
-type pEvent = *novelv1.Event
-
-var x = struct{}{}
-
-func (r *Relay) pubPbEvents(
-	ctx context.Context, eb EventBatch, pbEvents []pEvent,
-) (err error) {
-	defer xerr.Expect(&err, "publish events")
-
-	failedAggs := map[ID]struct{}{}
-	results := make([]Result, 0, len(pbEvents))
-	toSend := make([]pEvent, 0, len(pbEvents))
-	toSendIdx := make([]int, 0, len(pbEvents))
-
-	for left := 0; left < len(pbEvents); left += r.maxPub {
-		select {
-		case <-ctx.Done():
-			return context.Cause(ctx)
-		default:
-		}
-
-		right := min(len(pbEvents), left+r.maxPub)
-		eventsBatch := pbEvents[left:right]
-		resultsBatch := results[left:right]
-
-		for i := range eventsBatch {
-			if _, ok := failedAggs[eventsBatch[i].GetAggregateId().Into()]; ok {
-				id := eventsBatch[i].GetId().Into()
-				resultsBatch[i] = prevFailedResult(id)
-				continue
-			}
-
-			toSend = append(toSend, eventsBatch[i])
-			toSendIdx = append(toSendIdx, i)
-		}
-
-		err := r.bus.Pub(ctx, toSend)
-
-		xslice.ForeachIdx(
-			slices.All(toSend),
-			func(i int, e pEvent) {
-				idx := toSendIdx[i]
-				id := e.GetId().Into()
-				if err != nil {
-					resultsBatch[idx] = pubFailedResult(id)
-					failedAggs[e.GetId().Into()] = x
-				} else {
-					resultsBatch[idx] = pubOkResult(id)
-				}
-			})
-
-		if err := eb.AdvanceCursor(results...); err != nil {
-			return err
-		}
-
-		clear(results)
-		clear(toSend)
-	}
-
-	return nil
-}
-
-func pubOkResult(id ID) Result {
-	return Result{ID: id}
-}
-
-func pubFailedResult(id ID) Result {
-	return Result{
-		ID:     id,
-		Status: StatusFailed,
-		Reason: ReasonPublishFailed,
-	}
-}
-
-func prevFailedResult(id ID) Result {
-	return Result{
-		ID:     id,
-		Status: StatusPending,
-		Reason: ReasonPeviousFailed,
-	}
-}
-
 func (r *Relay) processEvents(
 	ctx context.Context) (
 	context.Context, func(ef EventsBatch) error,
@@ -357,7 +254,10 @@ func (r *Relay) pub(
 			slices.All(toSend),
 			func(i int, e *novelv1.Event) {
 				if pubErr != nil {
-					results[toSendIdx[i]] = resultFailed(e.GetId().Into(), pubErr)
+					results[toSendIdx[i]] = resultFailed(
+						e.GetId().Into(),
+						pubErr,
+					)
 					failedAggs[e.GetId().Into()] = true
 				}
 
@@ -380,7 +280,7 @@ func resultBlocked(id ID) Result {
 	return Result{
 		ID:     id,
 		Status: StatusBlocked,
-		Reason: "One of previous events in same aggregate failed.",
+		Reason: "One of previous events in same aggregate publish failed.",
 	}
 }
 
@@ -388,7 +288,7 @@ func resultFailed(id ID, err error) Result {
 	return Result{
 		ID:     id,
 		Status: StatusFailed,
-		Reason: err.Error(),
+		Reason: `Publish failed: ` + err.Error(),
 	}
 }
 

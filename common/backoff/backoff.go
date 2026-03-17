@@ -37,7 +37,10 @@ const (
 	DefaultMultiplier          = 1.5
 	DefaultMaxInterval         = 60 * time.Second
 )
-const DefaultMaxElapsedTime = 15 * time.Minute
-const Stop time.Duration = -1
+
+const (
+	DefaultMaxElapsedTime               = 15 * time.Minute
+	Stop                  time.Duration = -1
+)
 
 func Permanent(err error) error { return backoff.Permanent(err) }

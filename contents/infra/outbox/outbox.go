@@ -2,7 +2,6 @@ package outbox
 
 import (
 	"context"
-	"time"
 
 	"github.com/oklog/ulid/v2"
 
@@ -34,15 +33,6 @@ type EventsBatch interface {
 	AdvanceCursor(...Result) error
 }
 
-type EventBatch interface {
-	// PollEvents polls events limited by arg, in order. Events don't have to
-	// be in same aggregation.
-	PollEvents(Arg) ([]*novelv1.Event, error)
-
-	// AdvanceCursor pass results, expected them to be persistent.
-	AdvanceCursor(...Result) error
-}
-
 // EventBus is the message bus interface for publishing events.
 type EventBus interface {
 	Pub(context.Context, []*novelv1.Event) error
@@ -61,15 +51,6 @@ type Result struct {
 	Reason string
 }
 
-type Evnt struct {
-	ID            ID
-	AggregateID   ID
-	Kind          string
-	AggregateKind string
-	EmitAt        time.Time
-	Payload       []byte
-}
-
 // Status represents the publishing status of an event.
 type Status string
 
@@ -80,19 +61,6 @@ const (
 	StatusDead      Status = "dead" // exceeded max retries
 )
 
-const (
-	ReasonPublishFailed = `Publish Event Failed`
-	ReasonPeviousFailed = `Previous Event Publish Failed`
-)
-
 type (
-	ID    = ulid.ULID
-	Event interface {
-		ID() ID
-		AggregateID() ID
-		Kind() string
-		AggregateKind() string
-		EmitAt() time.Time
-		Payload() []byte
-	}
+	ID = ulid.ULID
 )
