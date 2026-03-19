@@ -2,6 +2,7 @@ package outbox_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -32,6 +33,150 @@ func TestStartIdeomepont(t *testing.T) {
 	}
 }
 
+func Example_mockEventRepo() {
+	err := newRepo().Process(context.TODO(), func(eb outbox.EventsBatch) error {
+		evs, err := eb.Poll(outbox.Arg{Limit: 2})
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		fmt.Println(len(evs))
+		fmt.Println(evs[0].GetId().Into() == events[0].GetId().Into())
+		fmt.Println(evs[1].GetId().Into() == events[1].GetId().Into())
+
+		err = eb.AdvanceCursor(
+			outbox.Result{ID: evs[0].GetId().Into(), Status: outbox.StatusPublished},
+			outbox.Result{ID: evs[1].GetId().Into(), Status: outbox.StatusPublished},
+		)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		evs, err = eb.Poll(outbox.Arg{Limit: 3})
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		fmt.Println(len(evs))
+		fmt.Println(evs[0].GetId().Into() == events[2].GetId().Into())
+		fmt.Println(evs[1].GetId().Into() == events[3].GetId().Into())
+		fmt.Println(evs[2].GetId().Into() == events[4].GetId().Into())
+
+		return nil
+	})
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// Output:
+	// 2
+	// true
+	// true
+	// 3
+	// true
+	// true
+	// true
+}
+
+func Example_mockEventRepoProcessMultipleTimes() {
+	repo := newRepo()
+	err := repo.Process(context.TODO(), func(eb outbox.EventsBatch) error {
+		evs, err := eb.Poll(outbox.Arg{Limit: 2})
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		fmt.Println(len(evs))
+		fmt.Println(evs[0].GetId().Into() == events[0].GetId().Into())
+		fmt.Println(evs[1].GetId().Into() == events[1].GetId().Into())
+
+		return eb.AdvanceCursor(
+			outbox.Result{ID: evs[0].GetId().Into(), Status: outbox.StatusPublished},
+			outbox.Result{ID: evs[1].GetId().Into(), Status: outbox.StatusPublished},
+		)
+	})
+	fmt.Println(err)
+
+	err = repo.Process(context.TODO(), func(eb outbox.EventsBatch) error {
+		evs, err := eb.Poll(outbox.Arg{Limit: 2})
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		// events 0-1 was processed, this time should got 2-3
+		fmt.Println(len(evs))
+		fmt.Println(evs[0].GetId().Into() == events[2].GetId().Into())
+		fmt.Println(evs[1].GetId().Into() == events[3].GetId().Into())
+
+		return eb.AdvanceCursor(
+			outbox.Result{ID: evs[0].GetId().Into(), Status: outbox.StatusPublished},
+			outbox.Result{ID: evs[1].GetId().Into(), Status: outbox.StatusPublished},
+		)
+	})
+	fmt.Println(err)
+
+	// Output:
+	// 2
+	// true
+	// true
+	// <nil>
+	// 2
+	// true
+	// true
+	// <nil>
+}
+
+func Example_mockEventRepoAbortTransaction() {
+	repo := newRepo()
+	err := repo.Process(context.TODO(), func(eb outbox.EventsBatch) error {
+		evs, err := eb.Poll(outbox.Arg{Limit: 2})
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		fmt.Println(len(evs))
+		fmt.Println(evs[0].GetId().Into() == events[0].GetId().Into())
+		fmt.Println(evs[1].GetId().Into() == events[1].GetId().Into())
+
+		return fmt.Errorf(`a dedicated error`)
+	})
+	fmt.Println(err)
+
+	err = repo.Process(context.TODO(), func(eb outbox.EventsBatch) error {
+		evs, err := eb.Poll(outbox.Arg{Limit: 2})
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		fmt.Println(len(evs))
+		fmt.Println(evs[0].GetId().Into() == events[0].GetId().Into())
+		fmt.Println(evs[1].GetId().Into() == events[1].GetId().Into())
+
+		return eb.AdvanceCursor(
+			outbox.Result{ID: evs[0].GetId().Into(), Status: outbox.StatusPublished},
+			outbox.Result{ID: evs[1].GetId().Into(), Status: outbox.StatusPublished},
+		)
+	})
+	fmt.Println(err)
+
+	// Output:
+	// 2
+	// true
+	// true
+	// a dedicated error
+	// 2
+	// true
+	// true
+	// <nil>
+}
+
 var _ outbox.EventBus = mockEventBus{}
 
 type mockEventBus struct{}
@@ -41,22 +186,28 @@ func (mockEventBus) Pub(context.Context, []*novelv1.Event) error {
 	return nil
 }
 
-var _ outbox.EventRepo = mockEventRepo{}
+var _ outbox.EventRepo = &mockEventRepo{}
 
 type mockEventRepo struct {
-	ev []*novelv1.Event
+	ev        []*novelv1.Event
+	published int
 }
 
-func newRepo() mockEventRepo {
-	return mockEventRepo{ev: events}
+func newRepo() *mockEventRepo {
+	return &mockEventRepo{ev: events}
 }
 
 // Process implements [outbox.EventRepo].
-func (r mockEventRepo) Process(
+func (r *mockEventRepo) Process(
 	ctx context.Context,
 	fn func(outbox.EventsBatch) error,
 ) error {
-	return fn(&mockEventbatch{r: r})
+	eb := &mockEventbatch{r: r, cursor: r.published}
+	if err := fn(eb); err != nil {
+		return err
+	}
+	r.published += eb.cursor
+	return nil
 }
 
 // Process implements [outbox.EventRepo].
@@ -64,7 +215,7 @@ func (r mockEventRepo) Process(
 var _ outbox.EventsBatch = &mockEventbatch{}
 
 type mockEventbatch struct {
-	r      mockEventRepo
+	r      *mockEventRepo
 	cursor int
 }
 
