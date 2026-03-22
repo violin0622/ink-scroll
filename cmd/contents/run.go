@@ -14,7 +14,7 @@ import (
 	"play-ddd/contents/domain/chapter"
 	"play-ddd/contents/domain/novel"
 	"play-ddd/contents/iface/grpc"
-	"play-ddd/contents/infra/eventbus/stderr"
+	ebstderr "play-ddd/contents/infra/eventbus/stderr"
 	"play-ddd/contents/infra/outbox"
 	"play-ddd/contents/infra/repository/pg"
 	"play-ddd/contents/infra/server"
@@ -42,9 +42,9 @@ func runErr(*cobra.Command, []string) error {
 	chapterFac := chapter.NewFactory(logr.Discard())
 	repo := pg.New(db, novelFac, chapterFac)
 	outbox := outbox.NewRelay(
-		stderr.New(),
+		ebstderr.New(),
 		repo.Outbox(),
-		logr.Discard(),
+		outbox.WithLogr(logr.Discard()),
 	)
 
 	ch := app.NewCommandHandler(repo, logr.Discard())

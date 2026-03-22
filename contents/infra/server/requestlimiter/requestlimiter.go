@@ -1,3 +1,5 @@
+// Package requestlimter provides Interceptor for request rate limiter
+// and dependent interfaces.
 package requestlimter
 
 import (

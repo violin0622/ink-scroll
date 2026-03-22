@@ -143,16 +143,9 @@ func (r *Relay) Ready() bool {
 	return running && r.Healthy()
 }
 
-// LastError returns the last tick error, if any.
-// func (r *Relay) LastError() error {
-// 	if err, ok := r.lastTickErr.Load().(error); ok {
-// 		return err
-// 	}
-// 	return nil
-// }
-
 // run is the main loop that listens for triggers and processes events.
 func (r *Relay) run() {
+	r.tick()
 NEXT:
 	select {
 	case <-r.ctx.Done():
@@ -232,20 +225,22 @@ func (r *Relay) pub(
 	toSend := make([]*novelv1.Event, 0, r.maxPub)
 	toSendIdx := make([]int, 0, r.maxPub)
 
-	for i, processed := 0, 0; processed < len(events); processed += i {
-		var e *novelv1.Event
-		for i, e = range events[processed:] {
+	for left, right := 0, 0; left < len(events); left += right {
+		// fmt.Println(`left`, left)
+		for right = 0; right < len(events[left:]); right += 1 {
 			if len(toSend) >= r.maxPub {
 				break
 			}
 
+			i := left + right
+			e := events[i]
 			id, aid := e.GetId().Into(), e.GetAggregateId().Into()
 			switch {
 			case failedAggs[aid]:
-				results[processed+i] = resultBlocked(id)
+				results[i] = resultBlocked(id)
 			default:
 				toSend = append(toSend, e)
-				toSendIdx = append(toSendIdx, processed+i)
+				toSendIdx = append(toSendIdx, i)
 			}
 		}
 
@@ -267,6 +262,7 @@ func (r *Relay) pub(
 		clear(toSend)
 		clear(toSendIdx)
 		toSend, toSendIdx = toSend[:0], toSendIdx[:0]
+		// fmt.Println(`right`, right, left+right)
 	}
 
 	if err = eb.AdvanceCursor(results...); err != nil {

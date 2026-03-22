@@ -1,3 +1,4 @@
+// Package nop provides a no op requestlimiter.
 package nop
 
 import (
@@ -13,9 +14,7 @@ type nop struct {
 
 func New() nop { return nop{} }
 
-func (n *nop) Request(
-	requestlimter.RequestInfo,
-) (r requestlimter.Result) {
+func (n *nop) Request(requestlimter.RequestInfo) (r requestlimter.Result) {
 	n.total.Add(1)
 	return r
 }

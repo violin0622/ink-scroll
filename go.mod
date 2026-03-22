@@ -7,6 +7,7 @@ require (
 	buf.build/go/protovalidate v1.0.0
 	github.com/onsi/ginkgo/v2 v2.26.0
 	github.com/onsi/gomega v1.38.2
+	go.uber.org/goleak v1.3.0
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250825161204-c5933d9347a5
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10

@@ -8,7 +8,7 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 )
 
-// interceptorLogger adapts logr logger to interceptor logger.
+// New interceptorLogger adapts logr logger to interceptor logger.
 // This code is simple enough to be copied and not imported.
 func New(l logr.Logger) logging.Logger {
 	return logging.LoggerFunc(
