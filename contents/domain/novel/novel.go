@@ -348,7 +348,8 @@ func (n *Novel) imposeNewChapterUploaded(e ev.NewChapterUploaded) error {
 		return ErrMutateCompletedNovel
 	}
 
-	if err := n.toc.Append(e.Chapter); err != nil {
+	var err error
+	if n.toc, err = n.toc.Append(e.Chapter); err != nil {
 		return err
 	}
 
@@ -369,7 +370,7 @@ func (n *Novel) imposeChapterRevised(e ev.ChapterRevised) error {
 }
 
 func (n *Novel) reviseChapter(c vo.Chapter) (origin vo.Chapter, err error) {
-	if origin, err = n.toc.Revise(c); err != nil {
+	if n.toc, origin, err = n.toc.Revise(c); err != nil {
 		return origin, err
 	}
 
@@ -392,11 +393,12 @@ func (n *Novel) withdrawChapter() error {
 		return ErrMutateCompletedNovel
 	}
 
-	c, err := n.toc.Pop()
+	toc, c, err := n.toc.Pop()
 	if err != nil {
 		return err
 	}
 
+	n.toc = toc
 	n.wordCount -= c.WordCount
 	last := n.toc.ChapterCount()
 	lastC, err := n.toc.Get(last)

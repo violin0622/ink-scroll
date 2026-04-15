@@ -8,6 +8,9 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// Can be either:
+// - Part-Chapter
+// - Chapter
 type TOC struct {
 	chapters []Chapter
 }
@@ -57,32 +60,32 @@ func (t TOC) NextChapter(title string, wordCount int) (c Chapter) {
 	return c
 }
 
-func (t *TOC) Append(c Chapter) error {
+func (t TOC) Append(c Chapter) (TOC, error) {
 	t.chapters = append(t.chapters, c)
-	return t.checkInvariants()
+	return t, t.checkInvariants()
 }
 
-func (t *TOC) Pop() (c Chapter, err error) {
+func (t TOC) Pop() (nt TOC, c Chapter, err error) {
 	if t.isEmpty() {
-		return c, ErrNoContent
+		return t, c, ErrNoContent
 	}
 
 	last := len(t.chapters) - 1
 	c, t.chapters = t.chapters[last], t.chapters[:last]
 
-	return c, t.checkInvariants()
+	return t, c, t.checkInvariants()
 }
 
 // Revise applies title and wordCount to chapter at seq sequence,
 // returns original chapter.
-func (t *TOC) Revise(c Chapter) (origin Chapter, err error) {
+func (t TOC) Revise(c Chapter) (nt TOC, origin Chapter, err error) {
 	if !t.isValidSequence(c.Sequence) {
-		return c, ErrInvalidChapterSequence
+		return t, c, ErrInvalidChapterSequence
 	}
 
 	origin, t.chapters[c.Sequence] = t.chapters[c.Sequence], c
 
-	return origin, t.checkInvariants()
+	return t, origin, t.checkInvariants()
 }
 
 func (t TOC) isValidSequence(seq int) bool {

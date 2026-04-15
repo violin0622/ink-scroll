@@ -226,7 +226,6 @@ func (r *Relay) pub(
 	toSendIdx := make([]int, 0, r.maxPub)
 
 	for left, right := 0, 0; left < len(events); left += right {
-		// fmt.Println(`left`, left)
 		for right = 0; right < len(events[left:]); right += 1 {
 			if len(toSend) >= r.maxPub {
 				break
@@ -262,7 +261,6 @@ func (r *Relay) pub(
 		clear(toSend)
 		clear(toSendIdx)
 		toSend, toSendIdx = toSend[:0], toSendIdx[:0]
-		// fmt.Println(`right`, right, left+right)
 	}
 
 	if err = eb.AdvanceCursor(results...); err != nil {

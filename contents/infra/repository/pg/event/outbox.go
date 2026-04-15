@@ -8,7 +8,6 @@ import (
 
 	"play-ddd/contents/infra/outbox"
 	novelv1 "play-ddd/proto/gen/go/contents/novel/v1"
-	"play-ddd/utils/ptr"
 	"play-ddd/utils/xerr"
 )
 
@@ -21,8 +20,8 @@ func (e eventRepo) Process(
 ) (err error) {
 	defer xerr.Expect(&err, "process")
 
-	tx := e.db.WithContext(ctx).Begin()
-	defer e.tryCommit(&err, tx)
+	tx := e.begin(ctx)
+	defer e.commit(&err, tx)
 
 	var cursor EventCursor
 	err = tx.
@@ -51,16 +50,6 @@ func (e eventRepo) Process(
 	return err
 }
 
-func (e eventRepo) tryCommit(err *error, tx *gorm.DB) {
-	if err == nil || *err == nil {
-		*err = tx.Commit().Error
-	}
-
-	if *err != nil {
-		*err = tx.Rollback().Error
-	}
-}
-
 var _ outbox.EventsBatch = (*eventBatch)(nil)
 
 type EventCursor struct {
@@ -79,14 +68,27 @@ func (e *eventBatch) AdvanceCursor(results ...outbox.Result) (err error) {
 
 	e.ec.RelayCursor += uint64(len(results))
 	// A rough implementation that update events one by one.
-	// TODO: group by status first to reduce IO.
-	for i := range results {
-		ev := fromOutbox(results[i])
-		err = e.tx.
-			Model(&ev).
+	// for i := range results {
+	// 	ev := fromOutbox(results[i])
+	// 	err = e.tx.
+	// 		Model(&ev).
+	// 		Updates(map[string]any{
+	// 			"status": ev.Status,
+	// 			"reason": ev.Reason,
+	// 		}).
+	// 		Error
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
+
+	for r, ids := range groupResults(results) {
+		err := e.tx.
+			Model(&Event{}).
+			Where("`id` in ?", ids).
 			Updates(map[string]any{
-				"status": ev.Status,
-				"reason": ev.Reason,
+				"status": r.Status,
+				"reason": r.Reason,
 			}).
 			Error
 		if err != nil {
@@ -95,6 +97,32 @@ func (e *eventBatch) AdvanceCursor(results ...outbox.Result) (err error) {
 	}
 
 	return err
+}
+
+func (e eventRepo) begin(ctx context.Context) *gorm.DB {
+	return e.db.WithContext(ctx).Begin()
+}
+
+func (e eventRepo) commit(err *error, tx *gorm.DB) {
+	if err == nil || *err == nil {
+		*err = tx.Commit().Error
+	}
+
+	if *err != nil {
+		*err = tx.Rollback().Error
+	}
+}
+
+func groupResults(results []outbox.Result) map[outbox.Result][]ID {
+	grouped := map[outbox.Result][]ID{}
+	for i := range results {
+		var r outbox.Result
+		r.Reason = results[i].Reason
+		r.Status = results[i].Status
+		grouped[r] = append(grouped[r], ID(results[i].ID))
+	}
+
+	return grouped
 }
 
 // Poll implements outbox.EventsBatch.
@@ -123,9 +151,9 @@ func (e *eventBatch) Poll(arg outbox.Arg) (es []*novelv1.Event, err error) {
 	return es, err
 }
 
-func fromOutbox(o outbox.Result) (e Event) {
-	e.ID = ID(o.ID)
-	e.Status = ptr.To(string(o.Status))
-	e.Reason = ptr.To(o.Reason)
-	return e
-}
+// func fromOutbox(o outbox.Result) (e Event) {
+// 	e.ID = ID(o.ID)
+// 	e.Status = ptr.To(string(o.Status))
+// 	e.Reason = ptr.To(o.Reason)
+// 	return e
+// }
