@@ -60,8 +60,7 @@ type ChapterRepo interface {
 }
 
 type NovelRepo interface {
-	novel.Query
-
+	ByAuthorAndTitle(context.Context, novel.ID, string) (novel.Novel, error)
 	Get(context.Context, novel.ID) (novel.Novel, error)
 	Save(context.Context, novel.Novel) error
 }

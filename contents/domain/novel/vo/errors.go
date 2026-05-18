@@ -10,3 +10,9 @@ var (
 	ErrInvalidChapterSequence = status.New(codes.OutOfRange, `chapter sequence out of range`).
 					Err()
 )
+
+func invalidConvertionError(a, b any) error {
+	return status.Errorf(
+		codes.FailedPrecondition,
+		`invalid status convertion '%s'->'%s'`, a, b)
+}

@@ -42,17 +42,11 @@ var _ = Describe(`NoveRepo`, func() {
 		tags     = []string{`DnD`, `Sole Famale`, `Legacy`}
 		status   = vo.Serial
 		chapters = []vo.Chapter{{
-			Title:      `Birth of The Brave One`,
-			Sequence:   1,
-			WordCount:  10,
-			UploadedAt: now.Add(-time.Millisecond),
-			UpdatedAt:  now.Add(-time.Millisecond),
+			ID:       ulid.Make(),
+			Sequence: 1,
 		}, {
-			Title:      `Death of The Brave One`,
-			Sequence:   2,
-			WordCount:  20,
-			UploadedAt: now,
-			UpdatedAt:  now,
+			ID:       ulid.Make(),
+			Sequence: 2,
 		}}
 		wordCount = 30
 		createdAt = now
@@ -104,11 +98,8 @@ var _ = Describe(`NoveRepo`, func() {
 
 		for i, c := range chapters {
 			nc := novel.Chapters()[i]
-			Ω(nc.Title).Should(BeEquivalentTo(c.Title))
+			Ω(nc.ID).Should(Equal(c.ID))
 			Ω(nc.Sequence).Should(Equal(c.Sequence))
-			Ω(nc.WordCount).Should(Equal(c.WordCount))
-			Ω(nc.UploadedAt).Should(Equal(c.UploadedAt))
-			Ω(nc.UpdatedAt).Should(Equal(c.UpdatedAt))
 		}
 	})
 })

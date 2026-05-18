@@ -2,8 +2,8 @@ package novel
 
 import (
 	"context"
-	"time"
 
+	"github.com/oklog/ulid/v2"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
@@ -101,11 +101,8 @@ func (n *Novel) fromDomain(novel novel.Novel) {
 }
 
 type Chapter struct {
-	Title      string
-	Sequence   int
-	WordCount  int
-	UploadedAt int64
-	UpdatedAt  int64
+	ID       string
+	Sequence int
 }
 
 func (c *Chapter) fromDomain(vc vo.Chapter) {
@@ -113,11 +110,8 @@ func (c *Chapter) fromDomain(vc vo.Chapter) {
 		return
 	}
 
-	c.Title = vc.Title
+	c.ID = vc.ID.String()
 	c.Sequence = vc.Sequence
-	c.WordCount = vc.WordCount
-	c.UpdatedAt = vc.UpdatedAt.UnixMilli()
-	c.UploadedAt = vc.UploadedAt.UnixMilli()
 }
 
 func (c *Chapter) IntoDomain() (vc vo.Chapter, err error) {
@@ -125,11 +119,13 @@ func (c *Chapter) IntoDomain() (vc vo.Chapter, err error) {
 		return vc, nil
 	}
 
-	vc.Title = c.Title
+	if c.ID != "" {
+		vc.ID, err = ulid.Parse(c.ID)
+		if err != nil {
+			return vc, err
+		}
+	}
 	vc.Sequence = c.Sequence
-	vc.WordCount = c.WordCount
-	vc.UpdatedAt = time.UnixMilli(c.UpdatedAt)
-	vc.UploadedAt = time.UnixMilli(c.UploadedAt)
 	return vc, nil
 }
 

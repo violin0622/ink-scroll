@@ -2,28 +2,21 @@ package novel
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/url"
 	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/oklog/ulid/v2"
-	"github.com/samber/mo"
+	"github.com/samber/lo"
 
 	ev "play-ddd/contents/domain/novel/events"
 	"play-ddd/contents/domain/novel/vo"
 )
 
-// If not found, implements should return NotfoundError.
-type Query interface {
-	ByAuthorAndTitle(context.Context, ID, string) mo.Result[Novel]
-}
-
 type Factory struct {
-	query Query
-	lg    logr.Logger
-	er    EventRepo
+	lg logr.Logger
+	er EventRepo
 }
 
 func NewFactory(
@@ -34,16 +27,16 @@ func NewFactory(
 	}
 }
 
-func (f Factory) WithQuery(q Query) Factory {
-	nf := f
-	nf.query = q
-	return nf
-}
-
 func (f Factory) WithEventRepo(er EventRepo) Factory {
 	nf := f
 	nf.er = er
 	return nf
+}
+
+type createNovelArgs struct {
+	authorID          ID
+	title, desc, cate string
+	tags              []string
 }
 
 // 创建小说分两步：
@@ -56,33 +49,36 @@ func (f Factory) Create(
 	authorID ID,
 	title, desc, category string,
 	tags []string,
-) mo.Result[Novel] {
+) (Novel, error) {
 	var err error
 	novel := Novel{
-		id:        ulid.Make(),
-		authorID:  authorID,
-		category:  vo.Category(category),
-		desc:      vo.Description(desc),
-		s:         vo.Draft,
-		er:        f.er,
-		createdAt: time.Now(),
-		updatedAt: time.Now(),
+		id:            ulid.Make(),
+		authorID:      authorID,
+		category:      vo.Category(category),
+		desc:          vo.Description(desc),
+		s:             vo.Serial,
+		releaseStatus: vo.Draft,
+		er:            f.er,
+		createdAt:     time.Now(),
+		updatedAt:     time.Now(),
 	}
 
 	if novel.toc, err = vo.NewTOC(); err != nil {
-		return mo.Err[Novel](fmt.Errorf(`create new novel: %w`, err))
-	}
-
-	if err := f.checkTitleUnique(ctx, authorID, title); err != nil {
-		return mo.Err[Novel](fmt.Errorf(`create new novel: %w`, err))
+		return Novel{}, fmt.Errorf(`create new novel: %w`, err)
 	}
 
 	if novel.title, err = vo.NewTitle(title); err != nil {
-		return mo.Err[Novel](fmt.Errorf(`create new novel: %w`, err))
+		return Novel{}, fmt.Errorf(`create new novel: %w`, err)
 	}
 
-	for i := range tags {
-		novel.tags = append(novel.tags, vo.Tag(tags[i]))
+	if novel.desc, err = vo.NewDescription(desc); err != nil {
+		return Novel{}, fmt.Errorf(`create new novel: %w`, err)
+	}
+
+	novel.tags = lo.Map(tags, func(t string, _ int) vo.Tag { return vo.Tag(t) })
+
+	if err = novel.checkInvariants(); err != nil {
+		return Novel{}, fmt.Errorf(`create new novel: %w`, err)
 	}
 
 	e := ev.NewNovelCreatedV2(
@@ -94,10 +90,10 @@ func (f Factory) Create(
 		novel.category,
 		novel.tags)
 	if err := f.er.Append(ctx, e); err != nil {
-		return mo.Err[Novel](fmt.Errorf(`create new novel: %w`, err))
+		return Novel{}, fmt.Errorf(`create new novel: %w`, err)
 	}
 
-	return mo.Ok(novel)
+	return novel, nil
 }
 
 // New returns a novel instance for replay.
@@ -148,26 +144,4 @@ func wrapOnError(msg string, err *error) {
 	if err != nil && *err != nil {
 		*err = fmt.Errorf(msg+`: %w`, *err)
 	}
-}
-
-func (f Factory) checkTitleUnique(
-	ctx context.Context,
-	authorID ID,
-	title string,
-) error {
-	if f.query == nil {
-		return fmt.Errorf(`nil query repo`)
-	}
-	res := f.query.ByAuthorAndTitle(ctx, authorID, title)
-	var notfound NotfoundError
-
-	if errors.As(res.Error(), &notfound) {
-		return nil
-	}
-
-	if res.IsError() {
-		return fmt.Errorf(`check title unique: %w`, res.Error())
-	}
-
-	return ErrTitleAlreadyExist
 }

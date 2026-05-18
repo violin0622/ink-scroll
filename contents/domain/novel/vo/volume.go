@@ -1,8 +1,9 @@
 package vo
 
 type Volume struct {
+	ID ID
 	// Seq must be a positive number.
-	Seq   int
-	Name  string
-	Parts []Part
+	Seq         int
+	Title       string
+	Description string
 }

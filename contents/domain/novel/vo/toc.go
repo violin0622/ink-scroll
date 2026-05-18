@@ -2,7 +2,6 @@ package vo
 
 import (
 	"slices"
-	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -13,6 +12,7 @@ import (
 // - Chapter
 type TOC struct {
 	chapters []Chapter
+	volumes  []Volume
 }
 
 func NewTOC(c ...Chapter) (TOC, error) {
@@ -50,12 +50,8 @@ func (t TOC) ChapterCount() int {
 	return len(t.chapters) - 1
 }
 
-func (t TOC) NextChapter(title string, wordCount int) (c Chapter) {
+func (t TOC) NextChapter() (c Chapter) {
 	c.Sequence = len(t.chapters)
-	c.UploadedAt = time.Now()
-	c.UpdatedAt = time.Now()
-	c.Title = title
-	c.WordCount = wordCount
 
 	return c
 }

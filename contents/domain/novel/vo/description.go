@@ -1,23 +1,16 @@
 package vo
 
 import (
-	"errors"
-
-	"github.com/samber/mo"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type Description string
 
-func NewDescription(d string) (mo.Option[Description], error) {
-	if len(d) > 500 {
-		return mo.None[Description](), errors.New(
-			`description too long, at most 500 words`,
-		)
+func NewDescription(d string) (Description, error) {
+	if len(d) < 20 || len(d) > 500 {
+		return ``, status.Error(codes.InvalidArgument, `invalid description length, must be 20-500 words`)
 	}
 
-	if len(d) == 0 {
-		return mo.Some(Description(`No description yet.`)), nil
-	}
-
-	return mo.Some(Description(d)), nil
+	return Description(d), nil
 }

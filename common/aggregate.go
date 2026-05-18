@@ -7,6 +7,11 @@ type Aggregate[ID comparable] interface {
 	Kind() string
 }
 
+type Entity[ID comparable] interface {
+	ID() ID
+	Kind() string
+}
+
 type AggregateRepo[ID comparable, A Aggregate[ID]] interface {
 	Get(context.Context, ID) (A, error)
 	Save(context.Context, A) error

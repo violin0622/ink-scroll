@@ -6,20 +6,20 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/samber/mo"
 	"gorm.io/gorm"
 
+	"play-ddd/contents/app"
 	"play-ddd/contents/domain/novel"
 	"play-ddd/contents/domain/novel/vo"
 	"play-ddd/contents/infra/repository/pg/convert"
 )
 
-var _ novel.Query = novelRepo{}
+var _ app.NovelRepo = novelRepo{}
 
-// ByAuthorAndTitle implements novel.Query.
+// ByAuthorAndTitle implements app.NovelRepo.
 func (p novelRepo) ByAuthorAndTitle(
 	ctx context.Context, authorID novel.AuthorID, title string,
-) mo.Result[novel.Novel] {
+) (novel.Novel, error) {
 	var n Novel
 	err := p.db.
 		WithContext(ctx).
@@ -32,19 +32,19 @@ func (p novelRepo) ByAuthorAndTitle(
 		Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return mo.Err[novel.Novel](novel.NewNotfoundError(err))
+		return novel.Novel{}, novel.NewNotfoundError(err)
 	}
 
 	if err != nil {
-		return mo.Err[novel.Novel](err)
+		return novel.Novel{}, err
 	}
 
 	dn, err := p.restore(n)
 	if err != nil {
-		return mo.Err[novel.Novel](err)
+		return novel.Novel{}, err
 	}
 
-	return mo.Ok(dn)
+	return dn, nil
 }
 
 // func (p novelRepo) batchRestore(

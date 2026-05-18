@@ -2,18 +2,20 @@ package vo
 
 import (
 	"cmp"
-	"time"
+
+	"github.com/oklog/ulid/v2"
 )
 
 var SentinelChapter = Chapter{}
 
+type ID = ulid.ULID
 type Chapter struct {
-	// ID         ulid.ULID
-	Title      string
-	Sequence   int
-	WordCount  int
-	UploadedAt time.Time
-	UpdatedAt  time.Time
+	ID       ID
+	Sequence int
+	VolumeID ID
+
+	// Title      string
+	// UpdatedAt  time.Time
 }
 
 func ChapterCmp(a, b Chapter) int {

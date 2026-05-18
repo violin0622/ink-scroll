@@ -11,6 +11,7 @@ FULL_VERSION := $(shell \
 BUF_VERSION = 1.59.0
 GOLANGCI_LINT_VERSION = v2.5.0
 MIGRATE_VERSION = v4.15.2
+MOCKGEN_VERSION = v0.6.0
 
 # 构建信息变量
 GIT_SHA := $(shell git rev-parse HEAD 2>/dev/null || echo "unknown")
@@ -109,6 +110,25 @@ migrate: $(CURDIR)/bin
 			echo "migrate 版本不匹配 (已安装: $$INSTALLED, 需要: $$EXPECTED)"; \
 			echo "正在重新下载..."; \
 			curl -sSL "$$MIGRATE_URL" | tar -xz -C $(CURDIR)/bin migrate; \
+		fi; \
+	fi
+
+.PHONY: mockgen
+mockgen: $(CURDIR)/bin
+	@MOCKGEN_BIN="$(CURDIR)/bin/mockgen"; \
+	if [ ! -f $$MOCKGEN_BIN ]; then \
+		echo "未找到 mockgen，正在安装..."; \
+		GOBIN=$(CURDIR)/bin go install go.uber.org/mock/mockgen@$(MOCKGEN_VERSION); \
+	else \
+		INSTALLED=$$($$MOCKGEN_BIN -version 2>/dev/null \
+			| grep -oE 'v?[0-9]+\.[0-9]+\.[0-9]+' | head -1 | sed 's/^v//' || echo ""); \
+		EXPECTED=$$(echo $(MOCKGEN_VERSION) | sed 's/v//'); \
+		if [ "$$INSTALLED" != "$$EXPECTED" ] || [ -z "$$INSTALLED" ]; then \
+			echo "mockgen 版本不匹配 (已安装: $$INSTALLED, 需要: $$EXPECTED)"; \
+			echo "正在重新安装..."; \
+			GOBIN=$(CURDIR)/bin go install go.uber.org/mock/mockgen@$(MOCKGEN_VERSION); \
+		else \
+			echo "mockgen $(MOCKGEN_VERSION) 已安装"; \
 		fi; \
 	fi
 

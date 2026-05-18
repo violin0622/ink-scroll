@@ -16,15 +16,24 @@ type NewChapterUploaded struct {
 	aid ID
 	at  time.Time
 
-	Chapter vo.Chapter
+	WordCount  int
+	UploadedAt time.Time
+	Chapter    vo.Chapter
 }
 
-func NewNewChapterUploaded(aid ID, c vo.Chapter) NewChapterUploaded {
+func NewNewChapterUploaded(
+	aid ID,
+	c vo.Chapter,
+	wordcount int,
+	uploadAt time.Time,
+) NewChapterUploaded {
 	return NewChapterUploaded{
-		id:      ulid.Make(),
-		at:      time.Now(),
-		aid:     aid,
-		Chapter: c,
+		id:         ulid.Make(),
+		at:         time.Now(),
+		aid:        aid,
+		WordCount:  wordcount,
+		UploadedAt: uploadAt,
+		Chapter:    c,
 	}
 }
 

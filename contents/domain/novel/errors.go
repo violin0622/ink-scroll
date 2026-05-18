@@ -40,10 +40,6 @@ func (n ReplayEventsError) Error() string {
 }
 
 var (
-	ErrMutateCompletedNovel = status.New(
-		codes.FailedPrecondition,
-		`mutate a completed novel is not allowed`).Err()
-
 	ErrTitleAlreadyExist = status.New(
 		codes.AlreadyExists,
 		`the author has already created a novel of same title before`).Err()
