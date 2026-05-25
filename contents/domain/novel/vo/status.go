@@ -37,9 +37,16 @@ func (s Status) ChapterPublished() (Status, error) {
 	case Serial, Desolated:
 		return Serial, nil
 	case Completed:
-		return s, status.Error(codes.FailedPrecondition, `can't publish new chapter to a completed novel.`)
+		return s, status.Error(
+			codes.FailedPrecondition,
+			`can't publish new chapter to a completed novel.`,
+		)
 	default:
-		return s, status.Errorf(codes.FailedPrecondition, `unknown status '%s'`, s)
+		return s, status.Errorf(
+			codes.FailedPrecondition,
+			`unknown status '%s'`,
+			s,
+		)
 	}
 }
 
@@ -55,10 +62,10 @@ type ReleaseStatus string
 
 const (
 	_         ReleaseStatus = ``
-	Draft                   = `Draft`
-	Reviewing               = `Reviewing`
-	Released                = `Released`
-	Banned                  = `Banned`
+	Draft     ReleaseStatus = `Draft`
+	Reviewing ReleaseStatus = `Reviewing`
+	Released  ReleaseStatus = `Released`
+	Banned    ReleaseStatus = `Banned`
 )
 
 func (s ReleaseStatus) NovelReviewSubmitted() (ReleaseStatus, error) {

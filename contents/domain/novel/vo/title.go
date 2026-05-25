@@ -8,9 +8,15 @@ import (
 )
 
 var (
-	ErrTitleTooLong     = status.Error(codes.InvalidArgument, `title exceed max length 256`)
-	ErrTitleInvalidChar = status.Error(codes.InvalidArgument, `title contains invalid charactor @#$%^&*()_+-=\/`)
-	ErrTitleEmpty       = status.Error(codes.InvalidArgument, `empty title`)
+	ErrTitleTooLong = status.Error(
+		codes.InvalidArgument,
+		`title exceed max length 256`,
+	)
+	ErrTitleInvalidChar = status.Error(
+		codes.InvalidArgument,
+		`title contains invalid charactor @#$%^&*()_+-=\/`,
+	)
+	ErrTitleEmpty = status.Error(codes.InvalidArgument, `empty title`)
 )
 
 type Title string

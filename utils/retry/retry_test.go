@@ -267,7 +267,12 @@ func TestDefaultSleep(t *testing.T) {
 	)
 	dur := time.Since(start)
 	assert.Error(t, err)
-	assert.Greater(t, dur, 300*time.Millisecond, "3 times default retry is longer then 300ms")
+	assert.Greater(
+		t,
+		dur,
+		300*time.Millisecond,
+		"3 times default retry is longer then 300ms",
+	)
 }
 
 func TestFixedSleep(t *testing.T) {
@@ -280,7 +285,12 @@ func TestFixedSleep(t *testing.T) {
 	)
 	dur := time.Since(start)
 	assert.Error(t, err)
-	assert.Less(t, dur, 500*time.Millisecond, "3 times default retry is shorter then 500ms")
+	assert.Less(
+		t,
+		dur,
+		500*time.Millisecond,
+		"3 times default retry is shorter then 500ms",
+	)
 }
 
 func TestLastErrorOnly(t *testing.T) {
@@ -315,7 +325,9 @@ func TestNonTransientError(t *testing.T) {
 
 func TestCombineFixedDelays(t *testing.T) {
 	if os.Getenv("OS") == "macos-latest" {
-		t.Skip("Skipping testing in MacOS GitHub actions - too slow, duration is wrong")
+		t.Skip(
+			"Skipping testing in MacOS GitHub actions - too slow, duration is wrong",
+		)
 	}
 
 	start := time.Now()
@@ -327,13 +339,25 @@ func TestCombineFixedDelays(t *testing.T) {
 	)
 	dur := time.Since(start)
 	assert.Error(t, err)
-	assert.Greater(t, dur, 400*time.Millisecond, "3 times combined, fixed retry is greater then 400ms")
-	assert.Less(t, dur, 500*time.Millisecond, "3 times combined, fixed retry is less then 500ms")
+	assert.Greater(
+		t,
+		dur,
+		400*time.Millisecond,
+		"3 times combined, fixed retry is greater then 400ms",
+	)
+	assert.Less(
+		t,
+		dur,
+		500*time.Millisecond,
+		"3 times combined, fixed retry is less then 500ms",
+	)
 }
 
 func TestRandomDelay(t *testing.T) {
 	if os.Getenv("OS") == "macos-latest" {
-		t.Skip("Skipping testing in MacOS GitHub actions - too slow, duration is wrong")
+		t.Skip(
+			"Skipping testing in MacOS GitHub actions - too slow, duration is wrong",
+		)
 	}
 
 	start := time.Now()
@@ -346,13 +370,25 @@ func TestRandomDelay(t *testing.T) {
 	)
 	dur := time.Since(start)
 	assert.Error(t, err)
-	assert.Greater(t, dur, 2*time.Millisecond, "3 times random retry is longer then 2ms")
-	assert.Less(t, dur, 150*time.Millisecond, "3 times random retry is shorter then 150ms")
+	assert.Greater(
+		t,
+		dur,
+		2*time.Millisecond,
+		"3 times random retry is longer then 2ms",
+	)
+	assert.Less(
+		t,
+		dur,
+		150*time.Millisecond,
+		"3 times random retry is shorter then 150ms",
+	)
 }
 
 func TestMaxDelay(t *testing.T) {
 	if os.Getenv("OS") == "macos-latest" {
-		t.Skip("Skipping testing in MacOS GitHub actions - too slow, duration is wrong")
+		t.Skip(
+			"Skipping testing in MacOS GitHub actions - too slow, duration is wrong",
+		)
 	}
 
 	start := time.Now()
@@ -365,8 +401,18 @@ func TestMaxDelay(t *testing.T) {
 	)
 	dur := time.Since(start)
 	assert.Error(t, err)
-	assert.Greater(t, dur, 120*time.Millisecond, "5 times with maximum delay retry is less than 120ms")
-	assert.Less(t, dur, 275*time.Millisecond, "5 times with maximum delay retry is longer than 275ms")
+	assert.Greater(
+		t,
+		dur,
+		120*time.Millisecond,
+		"5 times with maximum delay retry is less than 120ms",
+	)
+	assert.Less(
+		t,
+		dur,
+		275*time.Millisecond,
+		"5 times with maximum delay retry is longer than 275ms",
+	)
 }
 
 func TestBackOffDelay(t *testing.T) {
@@ -411,8 +457,18 @@ func TestBackOffDelay(t *testing.T) {
 			func(t *testing.T) {
 				retrier := New(Delay(c.delay))
 				delay := BackOffDelay(c.n, nil, retrier)
-				assert.Equal(t, c.expectedMaxN, retrier.maxBackOffN, "max n mismatch")
-				assert.Equal(t, c.expectedDelay, delay, "delay duration mismatch")
+				assert.Equal(
+					t,
+					c.expectedMaxN,
+					retrier.maxBackOffN,
+					"max n mismatch",
+				)
+				assert.Equal(
+					t,
+					c.expectedDelay,
+					delay,
+					"delay duration mismatch",
+				)
 			},
 		)
 	}
@@ -560,46 +616,55 @@ func TestContext(t *testing.T) {
 		assert.Equal(t, 2, retrySum, "called at most once")
 	})
 
-	t.Run("cancelled on retry infinte attempts - wraps context error with last retried function error", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
+	t.Run(
+		"cancelled on retry infinte attempts - wraps context error with last retried function error",
+		func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
 
-		retrySum := 0
-		err := New(
-			OnRetry(func(n uint, err error) {
-				retrySum += 1
-				if retrySum == 2 {
-					cancel()
-				}
-			}),
-			Context(ctx),
-			Attempts(0),
-			WrapContextErrorWithLastError(true),
-		).Do(
-			func() error { return Transient(fooErr{str: fmt.Sprintf("error %d", retrySum+1)}) },
-		)
-		assert.ErrorIs(t, err, context.Canceled)
-		assert.ErrorIs(t, err, fooErr{str: "error 2"})
-	})
+			retrySum := 0
+			err := New(
+				OnRetry(func(n uint, err error) {
+					retrySum += 1
+					if retrySum == 2 {
+						cancel()
+					}
+				}),
+				Context(ctx),
+				Attempts(0),
+				WrapContextErrorWithLastError(true),
+			).Do(
+				func() error { return Transient(fooErr{str: fmt.Sprintf("error %d", retrySum+1)}) },
+			)
+			assert.ErrorIs(t, err, context.Canceled)
+			assert.ErrorIs(t, err, fooErr{str: "error 2"})
+		},
+	)
 
-	t.Run("timed out on retry infinte attempts - wraps context error with last retried function error", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*200)
-		defer cancel()
+	t.Run(
+		"timed out on retry infinte attempts - wraps context error with last retried function error",
+		func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(
+				context.Background(),
+				time.Millisecond*200,
+			)
+			defer cancel()
 
-		retrySum := 0
-		err := New(
-			OnRetry(func(n uint, err error) {
-				retrySum += 1
-			}),
-			Context(ctx),
-			Attempts(0),
-			WrapContextErrorWithLastError(true),
-		).Do(
-			func() error { return Transient(fooErr{str: fmt.Sprintf("error %d", retrySum+1)}) },
-		)
-		assert.ErrorIs(t, err, context.DeadlineExceeded)
-		assert.ErrorIs(t, err, fooErr{str: "error 2"})
-	})
+			retrySum := 0
+			err := New(
+				OnRetry(func(n uint, err error) {
+					retrySum += 1
+				}),
+				Context(ctx),
+				Attempts(0),
+				WrapContextErrorWithLastError(true),
+			).Do(
+				func() error { return Transient(fooErr{str: fmt.Sprintf("error %d", retrySum+1)}) },
+			)
+			assert.ErrorIs(t, err, context.DeadlineExceeded)
+			assert.ErrorIs(t, err, fooErr{str: "error 2"})
+		},
+	)
 }
 
 type testTimer struct {
@@ -719,8 +784,16 @@ func TestErrorsUnwrapReturnsNil(t *testing.T) {
 
 	// However, errors.Is and errors.As DO work with Unwrap() []error
 	// They traverse the error tree using either Unwrap() method
-	assert.True(t, errors.Is(retryErr, err1), "errors.Is should work with first error")
-	assert.True(t, errors.Is(retryErr, err2), "errors.Is should work with second error")
+	assert.True(
+		t,
+		errors.Is(retryErr, err1),
+		"errors.Is should work with first error",
+	)
+	assert.True(
+		t,
+		errors.Is(retryErr, err2),
+		"errors.Is should work with second error",
+	)
 
 	// Verify errors.As also works
 	customErr := &fooErr{str: "custom"}
@@ -782,11 +855,13 @@ func TestIsTransient(t *testing.T) {
 
 func TestFullJitterBackoffDelay(t *testing.T) {
 	// Seed for predictable randomness in tests
-	// In real usage, math/rand is auto-seeded in Go 1.20+ or should be seeded once at program start.
+	// In real usage, math/rand is auto-seeded in Go 1.20+ or should be seeded
+	// once at program start.
 	// For library test predictability, local seeding is fine.
-	// However, retry-go's RandomDelay uses global math/rand without explicit seeding in tests.
-	// Let's follow the existing pattern of not explicitly seeding in each test for now,
-	// assuming test runs are isolated enough or that exact delay values aren't asserted,
+	// However, retry-go's RandomDelay uses global math/rand without explicit
+	// seeding in tests. Let's follow the existing pattern of not explicitly
+	// seeding in each test for now, assuming test runs are isolated enough or
+	// that exact delay values aren't asserted,
 	// but rather ranges or properties.
 
 	baseDelay := 50 * time.Millisecond
@@ -804,32 +879,86 @@ func TestFullJitterBackoffDelay(t *testing.T) {
 			expectedMaxCeiling = float64(maxDelay)
 		}
 
-		assert.True(t, delay >= 0, "Delay should be non-negative. Got: %v for attempt %d", delay, n)
-		assert.True(t, delay <= time.Duration(expectedMaxCeiling),
-			"Delay %v should be less than or equal to current backoff ceiling %v for attempt %d", delay, time.Duration(expectedMaxCeiling), n)
+		assert.True(
+			t,
+			delay >= 0,
+			"Delay should be non-negative. Got: %v for attempt %d",
+			delay,
+			n,
+		)
+		assert.True(
+			t,
+			delay <= time.Duration(expectedMaxCeiling),
+			"Delay %v should be less than or equal to current backoff ceiling %v for attempt %d",
+			delay,
+			time.Duration(expectedMaxCeiling),
+			n,
+		)
 
-		t.Logf("Attempt %d: BaseDelay=%v, MaxDelay=%v, Calculated Ceiling=~%v, Actual Delay=%v",
-			n, baseDelay, maxDelay, time.Duration(expectedMaxCeiling), delay)
+		t.Logf(
+			"Attempt %d: BaseDelay=%v, MaxDelay=%v, Calculated Ceiling=~%v, Actual Delay=%v",
+			n,
+			baseDelay,
+			maxDelay,
+			time.Duration(expectedMaxCeiling),
+			delay,
+		)
 
 		// Test with MaxDelay disabled (0)
 		configNoMax := New(Delay(baseDelay))
-		delayNoMax := FullJitterBackoffDelay(n, errors.New("test error"), configNoMax)
+		delayNoMax := FullJitterBackoffDelay(
+			n,
+			errors.New("test error"),
+			configNoMax,
+		)
 		expectedCeilingNoMax := float64(baseDelay) * math.Pow(2, float64(n))
-		if expectedCeilingNoMax > float64(10*time.Minute) { // Avoid overflow for very large N
+		if expectedCeilingNoMax > float64(
+			10*time.Minute,
+		) { // Avoid overflow for very large N
 			expectedCeilingNoMax = float64(10 * time.Minute)
 		}
-		assert.True(t, delayNoMax >= 0, "Delay (no max) should be non-negative. Got: %v for attempt %d", delayNoMax, n)
-		assert.True(t, delayNoMax <= time.Duration(expectedCeilingNoMax),
-			"Delay (no max) %v should be less than or equal to current backoff ceiling %v for attempt %d", delayNoMax, time.Duration(expectedCeilingNoMax), n)
+		assert.True(
+			t,
+			delayNoMax >= 0,
+			"Delay (no max) should be non-negative. Got: %v for attempt %d",
+			delayNoMax,
+			n,
+		)
+		assert.True(
+			t,
+			delayNoMax <= time.Duration(expectedCeilingNoMax),
+			"Delay (no max) %v should be less than or equal to current backoff ceiling %v for attempt %d",
+			delayNoMax,
+			time.Duration(expectedCeilingNoMax),
+			n,
+		)
 	}
 
 	// Test case where baseDelay might be zero
 	configZeroBase := New(Delay(0), MaxDelay(maxDelay))
-	delayZeroBase := FullJitterBackoffDelay(0, errors.New("test error"), configZeroBase)
-	assert.Equal(t, time.Duration(0), delayZeroBase, "Delay with zero base delay should be 0")
+	delayZeroBase := FullJitterBackoffDelay(
+		0,
+		errors.New("test error"),
+		configZeroBase,
+	)
+	assert.Equal(
+		t,
+		time.Duration(0),
+		delayZeroBase,
+		"Delay with zero base delay should be 0",
+	)
 
-	delayZeroBaseAttempt1 := FullJitterBackoffDelay(1, errors.New("test error"), configZeroBase)
-	assert.Equal(t, time.Duration(0), delayZeroBaseAttempt1, "Delay with zero base delay (attempt > 0) should be 0")
+	delayZeroBaseAttempt1 := FullJitterBackoffDelay(
+		1,
+		errors.New("test error"),
+		configZeroBase,
+	)
+	assert.Equal(
+		t,
+		time.Duration(0),
+		delayZeroBaseAttempt1,
+		"Delay with zero base delay (attempt > 0) should be 0",
+	)
 
 	// Test with very small base delay
 	smallBaseDelay := 1 * time.Nanosecond

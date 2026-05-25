@@ -19,7 +19,10 @@ func (e Error) Error() string {
 		}
 	}
 
-	return fmt.Sprintf("All attempts fail:\n%s", strings.Join(logWithNumber, "\n"))
+	return fmt.Sprintf(
+		"All attempts fail:\n%s",
+		strings.Join(logWithNumber, "\n"),
+	)
 }
 
 func (e Error) Is(target error) bool {

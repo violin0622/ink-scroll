@@ -1,9 +1,10 @@
 package vo_test
 
 import (
-	"play-ddd/contents/domain/novel/vo"
 	"slices"
 	"testing"
+
+	"play-ddd/contents/domain/novel/vo"
 )
 
 func TestDiffTags(t *testing.T) {

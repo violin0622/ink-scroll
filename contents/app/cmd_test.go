@@ -138,7 +138,10 @@ type recordingEventRepo struct {
 	appended    []novel.Event
 }
 
-func (r *recordingEventRepo) Append(_ context.Context, evs ...novel.Event) error {
+func (r *recordingEventRepo) Append(
+	_ context.Context,
+	evs ...novel.Event,
+) error {
 	r.appendCalls++
 	r.appended = append(r.appended, evs...)
 	return nil

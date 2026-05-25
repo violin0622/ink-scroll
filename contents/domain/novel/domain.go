@@ -16,3 +16,7 @@ type (
 )
 
 var ZeroID = ulid.Zero
+
+type entity interface {
+	checkInvariants() error
+}

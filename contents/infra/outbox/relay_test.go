@@ -64,5 +64,8 @@ var _ = Describe(`Relay`, func() {
 })
 
 var _ = PDescribe(`Relay`, func() {
-	Describe(`mark all subsequent events in same aggregate as blocked when pub failed`, func() {})
+	Describe(
+		`mark all subsequent events in same aggregate as blocked when pub failed`,
+		func() {},
+	)
 })

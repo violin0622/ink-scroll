@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/samber/lo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -14,8 +15,6 @@ import (
 	"play-ddd/contents/domain/novel"
 	novelvo "play-ddd/contents/domain/novel/vo"
 	"play-ddd/utils/retry"
-
-	"github.com/samber/lo"
 )
 
 func (s *CommandHandler) CreateNovel(
@@ -48,7 +47,12 @@ func (s *CommandHandler) createNovel(
 	id novel.ID, err error,
 ) {
 	err = s.repo.Tx(func(tx Repo) error {
-		err := ensureNovelTitleAvailable(ctx, tx.Novel(), cmd.AuthorID, cmd.Title)
+		err := ensureNovelTitleAvailable(
+			ctx,
+			tx.Novel(),
+			cmd.AuthorID,
+			cmd.Title,
+		)
 		if err != nil {
 			return err
 		}

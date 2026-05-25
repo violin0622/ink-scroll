@@ -29,7 +29,8 @@ type EventsBatch interface {
 	// be in same aggregation.
 	Poll(Arg) ([]*novelv1.Event, error)
 
-	// AdvanceCursor pass results, expected them to be persistent, and not be polled again.
+	// AdvanceCursor pass results, expected them to be persistent, and not be
+	// polled again.
 	AdvanceCursor(...Result) error
 }
 

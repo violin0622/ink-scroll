@@ -21,12 +21,21 @@ func TestLastError(t *testing.T) {
 
 	t.Run("returns nil for empty error list", func(t *testing.T) {
 		emptyErr := Error{}
-		assert.Nil(t, emptyErr.LastError(), "LastError should return nil for empty error list")
+		assert.Nil(
+			t,
+			emptyErr.LastError(),
+			"LastError should return nil for empty error list",
+		)
 	})
 
 	t.Run("returns only error for single error", func(t *testing.T) {
 		singleErr := Error{err1}
-		assert.Equal(t, err1, singleErr.LastError(), "LastError should return the only error")
+		assert.Equal(
+			t,
+			err1,
+			singleErr.LastError(),
+			"LastError should return the only error",
+		)
 	})
 
 	t.Run("migration example from errors.Unwrap", func(t *testing.T) {

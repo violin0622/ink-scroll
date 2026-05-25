@@ -16,8 +16,159 @@ type TOC struct {
 }
 
 func NewTOC(c ...Chapter) (TOC, error) {
-	toc := TOC{chapters: append([]Chapter{SentinelChapter}, c...)}
+	toc := TOC{
+		chapters: append([]Chapter{SentinelChapter}, c...),
+		volumes: []Volume{{
+			ID:          ID{},
+			Title:       "",
+			Description: "",
+			Kind:        0,
+		}},
+	}
 	return toc, toc.checkInvariants()
+}
+
+func (t *TOC) RenameVolume(id ID, title string) error {
+	i := slices.IndexFunc(
+		t.volumes,
+		func(v Volume) bool { return v.ID == id })
+	if i < 0 {
+		return ErrVolumeNotFound
+	}
+
+	t.volumes[i].Title = title
+	return nil
+}
+
+// ReorderVolume reset target volume to [seq].
+// seq must in the range [0, len(volumes))
+func (t *TOC) ReorderVolume(id ID, seq int) error {
+	if seq < 0 || seq >= len(t.volumes) {
+		return ErrInvalidVolumeSequence
+	}
+
+	idx := slices.IndexFunc(
+		t.volumes,
+		func(v Volume) bool { return v.ID == id })
+	if idx < 0 {
+		return ErrVolumeNotFound
+	}
+
+	v := t.volumes[idx]
+	switch {
+	case idx > seq: // move forward
+		for i := idx - 1; i >= seq; i-- {
+			t.volumes[i+1] = t.volumes[i]
+		}
+	case idx < seq: // move backward
+		copy(t.volumes[idx:], t.volumes[idx+1:seq+1])
+	default:
+	}
+	t.volumes[seq] = v
+
+	return nil
+}
+
+// REQ-VOLUME-011：空的自定义分卷可以删除。
+// REQ-VOLUME-012：存在已发布章节的分卷不能直接删除。
+func (t TOC) DropVolume(nid, id ID) (TOC, error) {
+	i, err := t.volumeIndexByID(id)
+	if err != nil {
+		return t, err
+	}
+
+	if len(t.volumes) == 1 {
+		return t, dropLastVolumeError(nid, id)
+	}
+
+	chapters, err := t.ChaptersByVolume(id)
+	if err != nil {
+		return t, err
+	}
+	if len(chapters) != 0 {
+		return t, volumeHasChapterError(nid, id, len(chapters))
+	}
+
+	copy(t.volumes[i:], t.volumes[i+1:])
+	t.volumes = t.volumes[:len(t.volumes)-1]
+
+	return t, nil
+}
+
+func (t TOC) ChaptersByVolume(id ID) ([]Chapter, error) {
+	if _, err := t.volumeIndexByID(id); err != nil {
+		return nil, err
+	}
+
+	chapters := []Chapter{}
+	for i := range t.chapters {
+		if t.chapters[i].VolumeID == id {
+			chapters = append(chapters, t.chapters[i])
+		}
+	}
+
+	return chapters, nil
+}
+
+func (t TOC) volumeIndexByID(id ID) (int, error) {
+	i := slices.IndexFunc(t.volumes, func(v Volume) bool { return v.ID == id })
+	if i < 0 {
+		return 0, ErrVolumeNotFound
+	}
+
+	return i, nil
+}
+
+func (t TOC) UpdateVolumeDesc(id ID, desc string) (TOC, error) {
+	i := slices.IndexFunc(
+		t.volumes,
+		func(v Volume) bool { return v.ID == id })
+	if i < 0 {
+		return t, ErrVolumeNotFound
+	}
+
+	t.volumes[i].Description = desc
+	return t, nil
+}
+
+// volume name must be unique.
+func (t *TOC) NewVolume(
+	id ID,
+	title, desc string,
+	kind VolumeKind,
+) error {
+	i := slices.IndexFunc(t.volumes, func(v Volume) bool {
+		return v.Title == title
+	})
+	if i >= 0 {
+		return status.Errorf(
+			codes.AlreadyExists,
+			`volume title '%s' already exists, please fill in a different title.`,
+			title,
+		)
+	}
+
+	t.volumes = append(t.volumes, Volume{
+		ID:          id,
+		Title:       title,
+		Description: desc,
+		Kind:        kind,
+	})
+
+	return nil
+}
+
+func (t *TOC) RestoreVolume(
+	id ID,
+	title, desc string,
+	kind VolumeKind,
+) {
+	t.volumes = append(t.volumes, Volume{
+		ID:          id,
+		Title:       title,
+		Description: desc,
+		Kind:        kind,
+	})
 }
 
 func (t TOC) LatestChapter() (c Chapter, err error) {
@@ -93,7 +244,7 @@ func (t TOC) isEmpty() bool { return len(t.chapters) == 1 }
 func (t TOC) checkInvariants() error {
 	invariants := []func() error{
 		t.beginFromSentinel,
-		// t.atleastOneChapter,
+		t.atleastOneVolume,
 		t.chapterSequenceOrdered,
 		t.noRepeatedOrLostedChapterSequence,
 	}
@@ -107,12 +258,20 @@ func (t TOC) checkInvariants() error {
 	return nil
 }
 
-// func (t TOC) atleastOneChapter() error {
-// 	if len(t.chapters) < 2 {
-// 		return status.New(codes.Internal, `at least one chapter`).Err()
-// 	}
-// 	return nil
-// }
+// 新书首章必须在正文卷
+// TBD:
+// Case: 上传了两章，并将第一章移动至其他分卷？
+// Case: 上传一章、删除一章、再上传一章？
+func (t TOC) firstChapterGoesMainVolume() error {
+	return nil
+}
+
+func (t TOC) atleastOneVolume() error {
+	if len(t.chapters) < 2 {
+		return status.New(codes.Internal, `at least one chapter`).Err()
+	}
+	return nil
+}
 
 func (t TOC) beginFromSentinel() error {
 	if len(t.chapters) < 1 ||

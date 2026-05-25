@@ -23,6 +23,102 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// error info reason
+type NovelError int32
+
+const (
+	NovelError_NOVEL_ERROR_UNSPECIFIED          NovelError = 0
+	NovelError_NOVEL_ERROR_VOLUME_NOT_DROPPABLE NovelError = 1
+)
+
+// Enum value maps for NovelError.
+var (
+	NovelError_name = map[int32]string{
+		0: "NOVEL_ERROR_UNSPECIFIED",
+		1: "NOVEL_ERROR_VOLUME_NOT_DROPPABLE",
+	}
+	NovelError_value = map[string]int32{
+		"NOVEL_ERROR_UNSPECIFIED":          0,
+		"NOVEL_ERROR_VOLUME_NOT_DROPPABLE": 1,
+	}
+)
+
+func (x NovelError) Enum() *NovelError {
+	p := new(NovelError)
+	*p = x
+	return p
+}
+
+func (x NovelError) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (NovelError) Descriptor() protoreflect.EnumDescriptor {
+	return file_contents_novel_v1_novel_proto_enumTypes[0].Descriptor()
+}
+
+func (NovelError) Type() protoreflect.EnumType {
+	return &file_contents_novel_v1_novel_proto_enumTypes[0]
+}
+
+func (x NovelError) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use NovelError.Descriptor instead.
+func (NovelError) EnumDescriptor() ([]byte, []int) {
+	return file_contents_novel_v1_novel_proto_rawDescGZIP(), []int{0}
+}
+
+type NovelViolationType int32
+
+const (
+	NovelViolationType_NOVEL_VIOLATION_TYPE_UNSPECIFIED    NovelViolationType = 0
+	NovelViolationType_NOVEL_VIOLATION_TYPE_VOLUME_CHAPTER NovelViolationType = 1
+	NovelViolationType_NOVEL_VIOLATION_TYPE_VOLUME_EMPTY   NovelViolationType = 2
+)
+
+// Enum value maps for NovelViolationType.
+var (
+	NovelViolationType_name = map[int32]string{
+		0: "NOVEL_VIOLATION_TYPE_UNSPECIFIED",
+		1: "NOVEL_VIOLATION_TYPE_VOLUME_CHAPTER",
+		2: "NOVEL_VIOLATION_TYPE_VOLUME_EMPTY",
+	}
+	NovelViolationType_value = map[string]int32{
+		"NOVEL_VIOLATION_TYPE_UNSPECIFIED":    0,
+		"NOVEL_VIOLATION_TYPE_VOLUME_CHAPTER": 1,
+		"NOVEL_VIOLATION_TYPE_VOLUME_EMPTY":   2,
+	}
+)
+
+func (x NovelViolationType) Enum() *NovelViolationType {
+	p := new(NovelViolationType)
+	*p = x
+	return p
+}
+
+func (x NovelViolationType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (NovelViolationType) Descriptor() protoreflect.EnumDescriptor {
+	return file_contents_novel_v1_novel_proto_enumTypes[1].Descriptor()
+}
+
+func (NovelViolationType) Type() protoreflect.EnumType {
+	return &file_contents_novel_v1_novel_proto_enumTypes[1]
+}
+
+func (x NovelViolationType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use NovelViolationType.Descriptor instead.
+func (NovelViolationType) EnumDescriptor() ([]byte, []int) {
+	return file_contents_novel_v1_novel_proto_rawDescGZIP(), []int{1}
+}
+
 type Novel_Status int32
 
 const (
@@ -62,11 +158,11 @@ func (x Novel_Status) String() string {
 }
 
 func (Novel_Status) Descriptor() protoreflect.EnumDescriptor {
-	return file_contents_novel_v1_novel_proto_enumTypes[0].Descriptor()
+	return file_contents_novel_v1_novel_proto_enumTypes[2].Descriptor()
 }
 
 func (Novel_Status) Type() protoreflect.EnumType {
-	return &file_contents_novel_v1_novel_proto_enumTypes[0]
+	return &file_contents_novel_v1_novel_proto_enumTypes[2]
 }
 
 func (x Novel_Status) Number() protoreflect.EnumNumber {
@@ -356,7 +452,15 @@ const file_contents_novel_v1_novel_proto_rawDesc = "" +
 	"\n" +
 	"ExtraEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\xba\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*O\n" +
+	"\n" +
+	"NovelError\x12\x1b\n" +
+	"\x17NOVEL_ERROR_UNSPECIFIED\x10\x00\x12$\n" +
+	" NOVEL_ERROR_VOLUME_NOT_DROPPABLE\x10\x01*\x8a\x01\n" +
+	"\x12NovelViolationType\x12$\n" +
+	" NOVEL_VIOLATION_TYPE_UNSPECIFIED\x10\x00\x12'\n" +
+	"#NOVEL_VIOLATION_TYPE_VOLUME_CHAPTER\x10\x01\x12%\n" +
+	"!NOVEL_VIOLATION_TYPE_VOLUME_EMPTY\x10\x02B\xba\x01\n" +
 	"\x15com.contents.novel.v1B\n" +
 	"NovelProtoP\x01Z/play-ddd/proto/gen/go/contents/novel/v1;novelv1\xa2\x02\x03CNX\xaa\x02\x11Contents.Novel.V1\xca\x02\x11Contents\\Novel\\V1\xe2\x02\x1dContents\\Novel\\V1\\GPBMetadata\xea\x02\x13Contents::Novel::V1b\x06proto3"
 
@@ -372,27 +476,29 @@ func file_contents_novel_v1_novel_proto_rawDescGZIP() []byte {
 	return file_contents_novel_v1_novel_proto_rawDescData
 }
 
-var file_contents_novel_v1_novel_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_contents_novel_v1_novel_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
 var file_contents_novel_v1_novel_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_contents_novel_v1_novel_proto_goTypes = []any{
-	(Novel_Status)(0),             // 0: contents.novel.v1.Novel.Status
-	(*Novel)(nil),                 // 1: contents.novel.v1.Novel
-	(*Author)(nil),                // 2: contents.novel.v1.Author
-	(*Novel_Chapter)(nil),         // 3: contents.novel.v1.Novel.Chapter
-	nil,                           // 4: contents.novel.v1.Author.ExtraEntry
-	(*ulid.ULID)(nil),             // 5: ulid.ULID
-	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
+	(NovelError)(0),               // 0: contents.novel.v1.NovelError
+	(NovelViolationType)(0),       // 1: contents.novel.v1.NovelViolationType
+	(Novel_Status)(0),             // 2: contents.novel.v1.Novel.Status
+	(*Novel)(nil),                 // 3: contents.novel.v1.Novel
+	(*Author)(nil),                // 4: contents.novel.v1.Author
+	(*Novel_Chapter)(nil),         // 5: contents.novel.v1.Novel.Chapter
+	nil,                           // 6: contents.novel.v1.Author.ExtraEntry
+	(*ulid.ULID)(nil),             // 7: ulid.ULID
+	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
 }
 var file_contents_novel_v1_novel_proto_depIdxs = []int32{
-	5, // 0: contents.novel.v1.Novel.id:type_name -> ulid.ULID
-	2, // 1: contents.novel.v1.Novel.author:type_name -> contents.novel.v1.Author
-	3, // 2: contents.novel.v1.Novel.chapters:type_name -> contents.novel.v1.Novel.Chapter
-	6, // 3: contents.novel.v1.Novel.created_at:type_name -> google.protobuf.Timestamp
-	6, // 4: contents.novel.v1.Novel.updated_at:type_name -> google.protobuf.Timestamp
-	5, // 5: contents.novel.v1.Author.id:type_name -> ulid.ULID
-	4, // 6: contents.novel.v1.Author.extra:type_name -> contents.novel.v1.Author.ExtraEntry
-	6, // 7: contents.novel.v1.Author.registered_at:type_name -> google.protobuf.Timestamp
-	5, // 8: contents.novel.v1.Novel.Chapter.id:type_name -> ulid.ULID
+	7, // 0: contents.novel.v1.Novel.id:type_name -> ulid.ULID
+	4, // 1: contents.novel.v1.Novel.author:type_name -> contents.novel.v1.Author
+	5, // 2: contents.novel.v1.Novel.chapters:type_name -> contents.novel.v1.Novel.Chapter
+	8, // 3: contents.novel.v1.Novel.created_at:type_name -> google.protobuf.Timestamp
+	8, // 4: contents.novel.v1.Novel.updated_at:type_name -> google.protobuf.Timestamp
+	7, // 5: contents.novel.v1.Author.id:type_name -> ulid.ULID
+	6, // 6: contents.novel.v1.Author.extra:type_name -> contents.novel.v1.Author.ExtraEntry
+	8, // 7: contents.novel.v1.Author.registered_at:type_name -> google.protobuf.Timestamp
+	7, // 8: contents.novel.v1.Novel.Chapter.id:type_name -> ulid.ULID
 	9, // [9:9] is the sub-list for method output_type
 	9, // [9:9] is the sub-list for method input_type
 	9, // [9:9] is the sub-list for extension type_name
@@ -410,7 +516,7 @@ func file_contents_novel_v1_novel_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_contents_novel_v1_novel_proto_rawDesc), len(file_contents_novel_v1_novel_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      3,
 			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,

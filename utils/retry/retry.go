@@ -63,20 +63,24 @@ func (r *Retrier) Do(fn RetryableFunc) error {
 
 // Stats returns a cumulative snapshot of this Retrier's executions.
 func (r *Retrier) Stats() Stats {
-	return r.retrierCore.statsSnapshot()
+	return r.statsSnapshot()
 }
 
-// Do executes the retryable function using this RetrierWithData's configuration.
+// Do executes the retryable function using this RetrierWithData's
+// configuration.
 func (r *RetrierWithData[T]) Do(retryableFunc RetryableWithFunc[T]) (T, error) {
 	return doWith(r.retrierCore, retryableFunc)
 }
 
 // Stats returns a cumulative snapshot of this RetrierWithData's executions.
 func (r *RetrierWithData[T]) Stats() Stats {
-	return r.retrierCore.statsSnapshot()
+	return r.statsSnapshot()
 }
 
-func doWith[T any](r *retrierCore, retryableFunc RetryableWithFunc[T]) (result T, err error) {
+func doWith[T any](
+	r *retrierCore,
+	retryableFunc RetryableWithFunc[T],
+) (result T, err error) {
 	var n uint
 	var attempts uint64
 	success := false
@@ -182,7 +186,8 @@ func (r *retrierCore) computeDelay(n uint, err error) time.Duration {
 	return delayTime
 }
 
-// retrierCore holds the core configuration and business logic for retry operations.
+// retrierCore holds the core configuration and business logic for retry
+// operations.
 // this is then used by Retrier and RetrierWithData public APIs
 type retrierCore struct {
 	attempts                      uint
@@ -204,7 +209,11 @@ type retrierCore struct {
 	maxBackOffN uint // pre-computed for BackOffDelay, immutable after New()
 }
 
-func (r *retrierCore) recordStats(attempts uint64, success bool, elapsed time.Duration) {
+func (r *retrierCore) recordStats(
+	attempts uint64,
+	success bool,
+	elapsed time.Duration,
+) {
 	r.statsMu.Lock()
 	defer r.statsMu.Unlock()
 

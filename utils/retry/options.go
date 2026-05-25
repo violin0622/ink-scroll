@@ -21,7 +21,8 @@ type DelayContext interface {
 	MaxDelay() time.Duration
 }
 
-// DelayTypeFunc is called to return the next delay to wait after the retriable function fails on `err` after `n` attempts.
+// DelayTypeFunc is called to return the next delay to wait after the retriable
+// function fails on `err` after `n` attempts.
 type DelayTypeFunc func(n uint, err error, config DelayContext) time.Duration
 
 // Timer represents the timer used to track time for a retry.
@@ -62,7 +63,9 @@ func newRetrieerCore(opts ...Option) *retrierCore {
 	if core.delay < 0 {
 		core.delay = 0
 	} else if core.delay > 0 {
-		core.maxBackOffN = maxBackOffN - uint(math.Floor(math.Log2(float64(core.delay))))
+		core.maxBackOffN = maxBackOffN - uint(
+			math.Floor(math.Log2(float64(core.delay))),
+		)
 	}
 
 	return core
@@ -78,7 +81,8 @@ func LastErrorOnly(lastErrorOnly bool) Option {
 	}
 }
 
-// Attempts set count of retry. Setting to 0 will retry until the retried function succeeds.
+// Attempts set count of retry. Setting to 0 will retry until the retried
+// function succeeds.
 // default is 10
 func Attempts(attempts uint) Option {
 	return func(r *retrierCore) {
@@ -86,7 +90,8 @@ func Attempts(attempts uint) Option {
 	}
 }
 
-// UntilSucceeded will retry until the retried function succeeds. Equivalent to setting Attempts(0).
+// UntilSucceeded will retry until the retried function succeeds. Equivalent to
+// setting Attempts(0).
 func UntilSucceeded() Option {
 	return func(r *retrierCore) {
 		r.attempts = 0
@@ -128,7 +133,8 @@ func MaxJitter(maxJitter time.Duration) Option {
 }
 
 // DelayType set type of the delay between retries
-// default is a combination of BackOffDelay and RandomDelay for exponential backoff with jitter
+// default is a combination of BackOffDelay and RandomDelay for exponential
+// backoff with jitter
 func DelayType(delayType DelayTypeFunc) Option {
 	if delayType == nil {
 		return emptyOption
@@ -162,7 +168,8 @@ func RandomDelay(_ uint, _ error, config DelayContext) time.Duration {
 	return time.Duration(rand.Int63n(int64(maxJitter)))
 }
 
-// CombineDelay is a DelayType the combines all of the specified delays into a new DelayTypeFunc
+// CombineDelay is a DelayType the combines all of the specified delays into a
+// new DelayTypeFunc
 func CombineDelay(delays ...DelayTypeFunc) DelayTypeFunc {
 	const maxInt64 = uint64(math.MaxInt64)
 
@@ -179,11 +186,16 @@ func CombineDelay(delays ...DelayTypeFunc) DelayTypeFunc {
 	}
 }
 
-// FullJitterBackoffDelay is a DelayTypeFunc that calculates delay using exponential backoff
-// with full jitter. The delay is a random value between 0 and the current backoff ceiling.
+// FullJitterBackoffDelay is a DelayTypeFunc that calculates delay using
+// exponential backoff with full jitter. The delay is a random value between 0
+// and the current backoff ceiling.
 // Formula: sleep = random_between(0, min(cap, base * 2^attempt))
 // It uses config.Delay as the base delay and config.MaxDelay as the cap.
-func FullJitterBackoffDelay(n uint, err error, config DelayContext) time.Duration {
+func FullJitterBackoffDelay(
+	n uint,
+	err error,
+	config DelayContext,
+) time.Duration {
 	// Calculate the exponential backoff ceiling for the current attempt
 	backoffCeiling := float64(config.Delay()) * math.Pow(2, float64(n))
 	currentCap := float64(config.MaxDelay())
@@ -204,7 +216,9 @@ func FullJitterBackoffDelay(n uint, err error, config DelayContext) time.Duratio
 		return 0 // No delay if ceiling is zero or negative
 	}
 
-	jitter := rand.Int63n(int64(backoffCeiling)) // #nosec G404 -- Using math/rand is acceptable for non-security critical jitter.
+	jitter := rand.Int63n(
+		int64(backoffCeiling),
+	) // #nosec G404 -- Using math/rand is acceptable for non-security critical jitter.
 	return time.Duration(jitter)
 }
 
@@ -268,7 +282,8 @@ func RetryIf(retryIf RetryIfFunc) Option {
 // Context allow to set context of retry
 // default are Background context
 //
-// example of immediately cancellation (maybe it isn't the best example, but it describes behavior enough; I hope)
+// example of immediately cancellation (maybe it isn't the best example, but it
+// describes behavior enough; I hope)
 //
 //	ctx, cancel := context.WithCancel(context.Background())
 //	cancel()
@@ -287,7 +302,8 @@ func Context(ctx context.Context) Option {
 }
 
 // WithTimer provides a way to swap out timer module implementations.
-// This primarily is useful for mocking/testing, where you may not want to explicitly wait for a set duration
+// This primarily is useful for mocking/testing, where you may not want to
+// explicitly wait for a set duration
 // for retries.
 //
 // example of augmenting time.After with a print statement
@@ -310,8 +326,9 @@ func WithTimer(t Timer) Option {
 	}
 }
 
-// WrapContextErrorWithLastError allows the context error to be returned wrapped with the last error that the
-// retried function returned. This is only applicable when Attempts is set to 0 to retry indefinitly and when
+// WrapContextErrorWithLastError allows the context error to be returned wrapped
+// with the last error that the retried function returned. This is only
+// applicable when Attempts is set to 0 to retry indefinitly and when
 // using a context to cancel / timeout
 //
 // default is false

@@ -39,3 +39,16 @@ message Author {
   map<string, string> extra = 5;
   google.protobuf.Timestamp registered_at = 10;
 }
+
+// error info reason
+enum NovelError {
+  NOVEL_ERROR_UNSPECIFIED = 0;
+  NOVEL_ERROR_VOLUME_NOT_DROPPABLE = 1;
+  NOVEL_ERROR_NOT_FOUND = 2;
+}
+
+enum NovelViolationType {
+  NOVEL_VIOLATION_TYPE_UNSPECIFIED = 0;
+  NOVEL_VIOLATION_TYPE_VOLUME_CHAPTER = 1;
+  NOVEL_VIOLATION_TYPE_VOLUME_EMPTY = 2;
+}
