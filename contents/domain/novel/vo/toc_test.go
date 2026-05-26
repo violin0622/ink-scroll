@@ -189,7 +189,7 @@ func TestTOC_DropVolume(t *testing.T) {
 
 	for i, tc := range tests {
 		t.Run(fmt.Sprintf(`%d_%s`, i, tc.name), func(t *testing.T) {
-			toc, err := tc.toc.DropVolume(ulid.Zero, tc.id)
+			toc, err := tc.toc.DropVolume(tc.id)
 			if err != nil {
 				t.Error(err)
 			}

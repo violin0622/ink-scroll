@@ -29,6 +29,8 @@ func (s *cmdServiceServer) CreateNovel(
 	ctx context.Context, req *contv1.CreateNovelRequest) (
 	rep *contv1.CreateNovelResponse, err error,
 ) {
+	defer toStatus(&err)
+
 	cmd := command.CreateNovel{
 		AuthorID: req.GetAuthorId().Into(),
 		Title:    req.GetTitle(),
@@ -49,6 +51,8 @@ func (s *cmdServiceServer) UpdateNovel(
 	ctx context.Context, req *contv1.UpdateNovelRequest) (
 	rep *contv1.UpdateNovelResponse, err error,
 ) {
+	defer toStatus(&err)
+
 	cmd := command.UpdateNovelInfo{
 		Tags: req.GetTags(),
 		Desc: req.GetDesc(),
@@ -65,6 +69,8 @@ func (s *cmdServiceServer) UploadChapter(
 	ctx context.Context, req *contv1.UploadChapterRequest) (
 	rep *contv1.UploadChapterResponse, err error,
 ) {
+	defer toStatus(&err)
+
 	id, err := s.ah.UploadChapter(ctx, command.UploadChapter{
 		NovelID:      req.GetNovelId().Into(),
 		Title:        req.GetTitle(),
@@ -72,7 +78,7 @@ func (s *cmdServiceServer) UploadChapter(
 		ExtraContent: req.GetExtraContent(),
 	})
 	if err != nil {
-		return nil, err
+		return nil, (err)
 	}
 
 	return &contv1.UploadChapterResponse{Id: ulidpb.From(id)}, nil

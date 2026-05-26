@@ -24,49 +24,56 @@ const (
 )
 
 // error info reason
-type NovelError int32
+// buf:lint:ignore ENUM_VALUE_PREFIX
+type ErrorReason int32
 
 const (
-	NovelError_NOVEL_ERROR_UNSPECIFIED          NovelError = 0
-	NovelError_NOVEL_ERROR_VOLUME_NOT_DROPPABLE NovelError = 1
+	ErrorReason_UNSPECIFIED          ErrorReason = 0
+	ErrorReason_VOLUME_NOT_DROPPABLE ErrorReason = 1
+	ErrorReason_NOT_FOUND            ErrorReason = 2
+	ErrorReason_TITLE_ALREADY_EXIST  ErrorReason = 3
 )
 
-// Enum value maps for NovelError.
+// Enum value maps for ErrorReason.
 var (
-	NovelError_name = map[int32]string{
-		0: "NOVEL_ERROR_UNSPECIFIED",
-		1: "NOVEL_ERROR_VOLUME_NOT_DROPPABLE",
+	ErrorReason_name = map[int32]string{
+		0: "UNSPECIFIED",
+		1: "VOLUME_NOT_DROPPABLE",
+		2: "NOT_FOUND",
+		3: "TITLE_ALREADY_EXIST",
 	}
-	NovelError_value = map[string]int32{
-		"NOVEL_ERROR_UNSPECIFIED":          0,
-		"NOVEL_ERROR_VOLUME_NOT_DROPPABLE": 1,
+	ErrorReason_value = map[string]int32{
+		"UNSPECIFIED":          0,
+		"VOLUME_NOT_DROPPABLE": 1,
+		"NOT_FOUND":            2,
+		"TITLE_ALREADY_EXIST":  3,
 	}
 )
 
-func (x NovelError) Enum() *NovelError {
-	p := new(NovelError)
+func (x ErrorReason) Enum() *ErrorReason {
+	p := new(ErrorReason)
 	*p = x
 	return p
 }
 
-func (x NovelError) String() string {
+func (x ErrorReason) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (NovelError) Descriptor() protoreflect.EnumDescriptor {
+func (ErrorReason) Descriptor() protoreflect.EnumDescriptor {
 	return file_contents_novel_v1_novel_proto_enumTypes[0].Descriptor()
 }
 
-func (NovelError) Type() protoreflect.EnumType {
+func (ErrorReason) Type() protoreflect.EnumType {
 	return &file_contents_novel_v1_novel_proto_enumTypes[0]
 }
 
-func (x NovelError) Number() protoreflect.EnumNumber {
+func (x ErrorReason) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Deprecated: Use NovelError.Descriptor instead.
-func (NovelError) EnumDescriptor() ([]byte, []int) {
+// Deprecated: Use ErrorReason.Descriptor instead.
+func (ErrorReason) EnumDescriptor() ([]byte, []int) {
 	return file_contents_novel_v1_novel_proto_rawDescGZIP(), []int{0}
 }
 
@@ -452,11 +459,12 @@ const file_contents_novel_v1_novel_proto_rawDesc = "" +
 	"\n" +
 	"ExtraEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*O\n" +
-	"\n" +
-	"NovelError\x12\x1b\n" +
-	"\x17NOVEL_ERROR_UNSPECIFIED\x10\x00\x12$\n" +
-	" NOVEL_ERROR_VOLUME_NOT_DROPPABLE\x10\x01*\x8a\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*`\n" +
+	"\vErrorReason\x12\x0f\n" +
+	"\vUNSPECIFIED\x10\x00\x12\x18\n" +
+	"\x14VOLUME_NOT_DROPPABLE\x10\x01\x12\r\n" +
+	"\tNOT_FOUND\x10\x02\x12\x17\n" +
+	"\x13TITLE_ALREADY_EXIST\x10\x03*\x8a\x01\n" +
 	"\x12NovelViolationType\x12$\n" +
 	" NOVEL_VIOLATION_TYPE_UNSPECIFIED\x10\x00\x12'\n" +
 	"#NOVEL_VIOLATION_TYPE_VOLUME_CHAPTER\x10\x01\x12%\n" +
@@ -479,7 +487,7 @@ func file_contents_novel_v1_novel_proto_rawDescGZIP() []byte {
 var file_contents_novel_v1_novel_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
 var file_contents_novel_v1_novel_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_contents_novel_v1_novel_proto_goTypes = []any{
-	(NovelError)(0),               // 0: contents.novel.v1.NovelError
+	(ErrorReason)(0),              // 0: contents.novel.v1.ErrorReason
 	(NovelViolationType)(0),       // 1: contents.novel.v1.NovelViolationType
 	(Novel_Status)(0),             // 2: contents.novel.v1.Novel.Status
 	(*Novel)(nil),                 // 3: contents.novel.v1.Novel

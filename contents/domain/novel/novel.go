@@ -112,6 +112,20 @@ func (n *Novel) UploadNewChapter(
 	return n.finish(ctx, e)
 }
 
+func (n *Novel) DropVolume(id ID) error {
+	toc, err := n.toc.DropVolume(id)
+	if err != nil {
+		return VolumeError{
+			VolumeID: id,
+			NovelID:  n.ID(),
+			Cause:    err,
+		}
+	}
+
+	n.toc = toc
+	return nil
+}
+
 // func (n *Novel) WithdrawChapter(ctx context.Context) error {
 // 	last := n.toc.ChapterCount()
 // 	c, err := n.toc.Get(last)

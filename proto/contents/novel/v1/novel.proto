@@ -41,10 +41,12 @@ message Author {
 }
 
 // error info reason
-enum NovelError {
-  NOVEL_ERROR_UNSPECIFIED = 0;
-  NOVEL_ERROR_VOLUME_NOT_DROPPABLE = 1;
-  NOVEL_ERROR_NOT_FOUND = 2;
+// buf:lint:ignore ENUM_VALUE_PREFIX
+enum ErrorReason {
+  UNSPECIFIED = 0;
+  VOLUME_NOT_DROPPABLE = 1;
+  NOT_FOUND = 2;
+  TITLE_ALREADY_EXIST = 3;
 }
 
 enum NovelViolationType {

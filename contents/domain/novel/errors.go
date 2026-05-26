@@ -46,3 +46,13 @@ var (
 
 	ErrNilPointer = status.New(codes.Internal, `nil pointer`).Err()
 )
+
+type VolumeError struct {
+	NovelID  ID
+	VolumeID ID
+	Cause    error
+}
+
+func (e VolumeError) Error() string {
+	return fmt.Sprintf(`novel %s volume %s: %s`, e.NovelID, e.VolumeID, e.Cause)
+}

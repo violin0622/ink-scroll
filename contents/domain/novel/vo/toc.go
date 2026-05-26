@@ -71,22 +71,19 @@ func (t *TOC) ReorderVolume(id ID, seq int) error {
 
 // REQ-VOLUME-011：空的自定义分卷可以删除。
 // REQ-VOLUME-012：存在已发布章节的分卷不能直接删除。
-func (t TOC) DropVolume(nid, id ID) (TOC, error) {
-	i, err := t.volumeIndexByID(id)
-	if err != nil {
-		return t, err
+func (t TOC) DropVolume(vid ID) (TOC, error) {
+	i := t.volumeByID(vid)
+	if i < 0 {
+		return t, ErrVolumeNotFound
 	}
 
 	if len(t.volumes) == 1 {
-		return t, dropLastVolumeError(nid, id)
+		return t, ErrDropLastVolume
 	}
 
-	chapters, err := t.ChaptersByVolume(id)
-	if err != nil {
-		return t, err
-	}
+	chapters := t.ChaptersByVolume(vid)
 	if len(chapters) != 0 {
-		return t, volumeHasChapterError(nid, id, len(chapters))
+		return t, VolumeHasChapterError{len(chapters)}
 	}
 
 	copy(t.volumes[i:], t.volumes[i+1:])
@@ -95,28 +92,23 @@ func (t TOC) DropVolume(nid, id ID) (TOC, error) {
 	return t, nil
 }
 
-func (t TOC) ChaptersByVolume(id ID) ([]Chapter, error) {
-	if _, err := t.volumeIndexByID(id); err != nil {
-		return nil, err
+func (t TOC) ChaptersByVolume(id ID) []int {
+	if i := t.volumeByID(id); i < 0 {
+		return nil
 	}
 
-	chapters := []Chapter{}
+	chapters := []int{}
 	for i := range t.chapters {
 		if t.chapters[i].VolumeID == id {
-			chapters = append(chapters, t.chapters[i])
+			chapters = append(chapters, i)
 		}
 	}
 
-	return chapters, nil
+	return chapters
 }
 
-func (t TOC) volumeIndexByID(id ID) (int, error) {
-	i := slices.IndexFunc(t.volumes, func(v Volume) bool { return v.ID == id })
-	if i < 0 {
-		return 0, ErrVolumeNotFound
-	}
-
-	return i, nil
+func (t TOC) volumeByID(id ID) int {
+	return slices.IndexFunc(t.volumes, func(v Volume) bool { return v.ID == id })
 }
 
 func (t TOC) UpdateVolumeDesc(id ID, desc string) (TOC, error) {
@@ -141,11 +133,10 @@ func (t *TOC) NewVolume(
 		return v.Title == title
 	})
 	if i >= 0 {
-		return status.Errorf(
-			codes.AlreadyExists,
-			`volume title '%s' already exists, please fill in a different title.`,
-			title,
-		)
+		return VolumeTitleAlreadyExistError{
+			ID:    t.volumes[i].ID,
+			Title: title,
+		}
 	}
 
 	t.volumes = append(t.volumes, Volume{
