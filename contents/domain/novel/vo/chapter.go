@@ -1,8 +1,6 @@
 package vo
 
 import (
-	"cmp"
-
 	"github.com/oklog/ulid/v2"
 )
 
@@ -11,8 +9,8 @@ var SentinelChapter = Chapter{}
 type (
 	ID      = ulid.ULID
 	Chapter struct {
-		ID       ID
-		Sequence int
+		ID ID
+		// Sequence int
 		VolumeID ID
 
 		// Title      string
@@ -20,6 +18,6 @@ type (
 	}
 )
 
-func ChapterCmp(a, b Chapter) int {
-	return cmp.Compare(a.Sequence, b.Sequence)
-}
+// func ChapterCmp(a, b Chapter) int {
+// 	return cmp.Compare(a.Sequence, b.Sequence)
+// }

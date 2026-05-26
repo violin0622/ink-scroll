@@ -42,16 +42,14 @@ func (t *TOC) RenameVolume(id ID, title string) error {
 
 // ReorderVolume reset target volume to [seq].
 // seq must in the range [0, len(volumes))
-func (t *TOC) ReorderVolume(id ID, seq int) error {
+func (t TOC) ReorderVolume(id ID, seq int) (TOC, error) {
 	if seq < 0 || seq >= len(t.volumes) {
-		return ErrInvalidVolumeSequence
+		return t, ErrInvalidVolumeSequence
 	}
 
-	idx := slices.IndexFunc(
-		t.volumes,
-		func(v Volume) bool { return v.ID == id })
+	idx := t.volumeByID(id)
 	if idx < 0 {
-		return ErrVolumeNotFound
+		return t, ErrVolumeNotFound
 	}
 
 	v := t.volumes[idx]
@@ -66,9 +64,10 @@ func (t *TOC) ReorderVolume(id ID, seq int) error {
 	}
 	t.volumes[seq] = v
 
-	return nil
+	return t, nil
 }
 
+// DropVolume deletes a volume.
 // REQ-VOLUME-011：空的自定义分卷可以删除。
 // REQ-VOLUME-012：存在已发布章节的分卷不能直接删除。
 func (t TOC) DropVolume(vid ID) (TOC, error) {
@@ -192,11 +191,11 @@ func (t TOC) ChapterCount() int {
 	return len(t.chapters) - 1
 }
 
-func (t TOC) NextChapter() (c Chapter) {
-	c.Sequence = len(t.chapters)
-
-	return c
-}
+// func (t TOC) NextChapter() (c Chapter) {
+// 	c.Sequence = len(t.chapters)
+//
+// 	return c
+// }
 
 func (t TOC) Append(c Chapter) (TOC, error) {
 	t.chapters = append(t.chapters, c)
@@ -214,17 +213,39 @@ func (t TOC) Pop() (nt TOC, c Chapter, err error) {
 	return t, c, t.checkInvariants()
 }
 
-// Revise applies title and wordCount to chapter at seq sequence,
-// returns original chapter.
-func (t TOC) Revise(c Chapter) (nt TOC, origin Chapter, err error) {
-	if !t.isValidSequence(c.Sequence) {
-		return t, c, ErrInvalidChapterSequence
+func (t TOC) ChapterSequence(cid ID) int { return len(t.chapters) }
+func (t TOC) ChapterSequenceInVolume(cid ID) int {
+	i := t.chapterByID(cid)
+	if i < 0 {
+		return 0
 	}
 
-	origin, t.chapters[c.Sequence] = t.chapters[c.Sequence], c
+	n := 0
+	vid := t.chapters[i].VolumeID
+	for _, c := range t.chapters[:i+1] {
+		if c.VolumeID == vid {
+			n += 1
+		}
+	}
 
-	return t, origin, t.checkInvariants()
+	return n
 }
+
+func (t TOC) chapterByID(cid ID) int {
+	return slices.IndexFunc(t.chapters, func(c Chapter) bool { return c.ID == cid })
+}
+
+// Revise applies title and wordCount to chapter at seq sequence,
+// returns original chapter.
+// func (t TOC) Revise(c Chapter) (nt TOC, origin Chapter, err error) {
+// 	if !t.isValidSequence(c.Sequence) {
+// 		return t, c, ErrInvalidChapterSequence
+// 	}
+//
+// 	origin, t.chapters[c.Sequence] = t.chapters[c.Sequence], c
+//
+// 	return t, origin, t.checkInvariants()
+// }
 
 func (t TOC) isValidSequence(seq int) bool {
 	return seq >= 1 && seq < len(t.chapters)
@@ -236,8 +257,6 @@ func (t TOC) checkInvariants() error {
 	invariants := []func() error{
 		t.beginFromSentinel,
 		t.atleastOneVolume,
-		t.chapterSequenceOrdered,
-		t.noRepeatedOrLostedChapterSequence,
 	}
 
 	for _, fn := range invariants {
@@ -272,20 +291,20 @@ func (t TOC) beginFromSentinel() error {
 	return nil
 }
 
-func (t TOC) noRepeatedOrLostedChapterSequence() error {
-	for seq := range len(t.chapters) {
-		if t.chapters[seq].Sequence != seq {
-			return status.New(codes.Internal, `chapter sequence missed or repeated`).
-				Err()
-		}
-	}
+// func (t TOC) noRepeatedOrLostedChapterSequence() error {
+// 	for seq := range len(t.chapters) {
+// 		if t.chapters[seq].Sequence != seq {
+// 			return status.New(codes.Internal, `chapter sequence missed or repeated`).
+// 				Err()
+// 		}
+// 	}
+//
+// 	return nil
+// }
 
-	return nil
-}
-
-func (t TOC) chapterSequenceOrdered() error {
-	if slices.IsSortedFunc(t.chapters, ChapterCmp) {
-		return nil
-	}
-	return status.New(codes.Internal, `chapter sequence not ordered`).Err()
-}
+// func (t TOC) chapterSequenceOrdered() error {
+// 	if slices.IsSortedFunc(t.chapters, ChapterCmp) {
+// 		return nil
+// 	}
+// 	return status.New(codes.Internal, `chapter sequence not ordered`).Err()
+// }

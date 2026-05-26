@@ -104,12 +104,12 @@ func TestTOCReorderVolume(t *testing.T) {
 
 	for i, tc := range tests {
 		t.Run(fmt.Sprintf(`%d_%s`, i, tc.name), func(t *testing.T) {
-			err := tc.toc.ReorderVolume(tc.id, tc.seq)
+			toc, err := tc.toc.ReorderVolume(tc.id, tc.seq)
 			if err != nil {
 				t.Errorf(`unexpected error: %s`, err)
 			}
 
-			if tc.toc.volTitles() != tc.expect {
+			if toc.volTitles() != tc.expect {
 				t.Errorf(`unexpected sequence: %s`, tc.toc.volTitles())
 			}
 		})
@@ -140,24 +140,24 @@ func TestTOCReorderVolumeError(t *testing.T) {
 		toc:  TOC{volumes: vol5()},
 		id:   id5,
 		seq:  -1,
-		err:  `OutOfRange`,
+		err:  `out of range`,
 	}, {
 		name: `out of range`,
 		toc:  TOC{volumes: vol5()},
 		id:   id5,
 		seq:  5,
-		err:  `OutOfRange`,
+		err:  `out of range`,
 	}, {
 		name: `not found`,
 		toc:  TOC{volumes: vol5()},
 		id:   id6,
 		seq:  3,
-		err:  `NotFound`,
+		err:  `not found`,
 	}}
 
 	for i, tc := range tests {
 		t.Run(fmt.Sprintf(`%d_%s`, i, tc.name), func(t *testing.T) {
-			err := tc.toc.ReorderVolume(tc.id, tc.seq)
+			_, err := tc.toc.ReorderVolume(tc.id, tc.seq)
 			if err == nil {
 				t.Errorf(`expecting error`)
 			}
@@ -201,9 +201,7 @@ func TestTOC_DropVolume(t *testing.T) {
 	}
 }
 
-func vol5() (
-	id1, id2, id3, id4, id5 ulid.ULID, vol []Volume,
-) {
+func vol5() (id1, id2, id3, id4, id5 ulid.ULID, vol []Volume) {
 	id1, id2, id3, id4, id5 = ulid.Make(), ulid.Make(), ulid.Make(), ulid.Make(), ulid.Make()
 	vol = []Volume{
 		{ID: id1, Title: "A"},
@@ -213,7 +211,7 @@ func vol5() (
 		{ID: id5, Title: "E"},
 	}
 
-	return id1, id2, id3, id4, id5, vol
+	return
 }
 
 func (t TOC) volTitles() string {
@@ -223,4 +221,68 @@ func (t TOC) volTitles() string {
 	}
 
 	return sb.String()
+}
+
+func chp5() (id1, id2, id3, id4, id5 ulid.ULID, chp []Chapter) {
+	id1, id2, id3, id4, id5 = ulid.Make(),
+		ulid.Make(),
+		ulid.Make(),
+		ulid.Make(),
+		ulid.Make()
+
+	chp = []Chapter{
+		{ID: id1},
+		{ID: id2},
+		{ID: id3},
+		{ID: id4},
+		{ID: id5},
+	}
+
+	return
+}
+
+func TestChapterSequenceInVolume(t *testing.T) {
+	id1, id2, id3, _, _, chp := chp5()
+	vid1, vid2 := ulid.Make(), ulid.Make()
+	chp[0].VolumeID = vid1
+	chp[1].VolumeID = vid2
+	chp[2].VolumeID = vid1
+	chp[3].VolumeID = vid2
+	chp[4].VolumeID = vid1
+
+	tests := []struct {
+		desc   string
+		toc    TOC
+		id     ID
+		expect int
+	}{{
+		desc:   ``,
+		toc:    TOC{chapters: chp},
+		id:     id1,
+		expect: 1,
+	}, {
+		desc:   ``,
+		toc:    TOC{chapters: chp},
+		id:     id3,
+		expect: 2,
+	}, {
+		desc:   ``,
+		toc:    TOC{chapters: chp},
+		id:     id2,
+		expect: 1,
+	}, {
+		desc:   `not exist`,
+		toc:    TOC{chapters: chp},
+		id:     ulid.Zero,
+		expect: 0,
+	}}
+
+	for i, tc := range tests {
+		t.Run(fmt.Sprintf(`%d_%s`, i, tc.desc), func(t *testing.T) {
+			n := tc.toc.ChapterSequenceInVolume(tc.id)
+			if n != tc.expect {
+				t.Errorf(`expect: %d, actual: %d`, tc.expect, n)
+			}
+		})
+	}
 }

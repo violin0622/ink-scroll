@@ -112,16 +112,43 @@ func (n *Novel) UploadNewChapter(
 	return n.finish(ctx, e)
 }
 
-func (n *Novel) DropVolume(id ID) error {
-	toc, err := n.toc.DropVolume(id)
+func (n *Novel) DropVolume(vid ID) error {
+	e := ev.NewVolumeDropped(n.ID(), vid)
+	if err := n.imposeVolumeDropped(e); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (n *Novel) imposeVolumeDropped(e ev.VolumeDropped) error {
+	toc, err := n.toc.DropVolume(e.VID)
 	if err != nil {
 		return VolumeError{
-			VolumeID: id,
+			VolumeID: e.VID,
 			NovelID:  n.ID(),
 			Cause:    err,
 		}
 	}
 
+	n.toc = toc
+	return nil
+}
+
+func (n *Novel) ReorderVolume(vid ID, seq int) error {
+	e := ev.NewVolumeReordered(n.ID(), vid, seq)
+	return n.imposeVolumeReordered(e)
+}
+
+func (n *Novel) imposeVolumeReordered(e ev.VolumeReordered) error {
+	toc, err := n.toc.ReorderVolume(e.VID, e.Seq)
+	if err != nil {
+		return VolumeError{
+			NovelID:  n.ID(),
+			VolumeID: e.VID,
+			Cause:    err,
+		}
+	}
 	n.toc = toc
 	return nil
 }
@@ -288,6 +315,10 @@ func (n *Novel) applyEvent(e ev.Event) error {
 		return n.imposeNolongerUpdate(e)
 	case ev.Completed:
 		return n.imposeCompleted(e)
+	case ev.VolumeDropped:
+		return n.imposeVolumeDropped(e)
+	case ev.VolumeReordered:
+		return n.imposeVolumeReordered(e)
 	default:
 		return common.ErrUnknownEventKind(e.Kind())
 	}
@@ -342,10 +373,6 @@ func (n *Novel) imposeNewChapterUploaded(e ev.NewChapterUploaded) error {
 	}
 
 	var err error
-	if n.s, err = n.s.ChapterPublished(); err != nil {
-		return err
-	}
-
 	if n.toc, err = n.toc.Append(e.Chapter); err != nil {
 		return err
 	}
