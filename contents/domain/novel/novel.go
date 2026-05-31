@@ -100,10 +100,11 @@ func (n *Novel) UpdateDescription(ctx context.Context, d string) error {
 }
 
 func (n *Novel) UploadNewChapter(
-	ctx context.Context, id ID, wordcount int, uploadAt time.Time,
+	ctx context.Context, vid, id ID, wordcount int, uploadAt time.Time,
 ) error {
-	c := n.toc.NextChapter()
-	c.ID = id
+	// c := n.toc.NextChapter()
+	// c.ID = id
+	c := vo.Chapter{ID: id, VolumeID: vid}
 	e := ev.NewNewChapterUploaded(n.id, c, wordcount, uploadAt)
 	if err := n.imposeNewChapterUploaded(e); err != nil {
 		return err

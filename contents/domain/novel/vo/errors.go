@@ -37,3 +37,12 @@ func invalidConvertionError(a, b any) error {
 		codes.FailedPrecondition,
 		`invalid status convertion '%s'->'%s'`, a, b)
 }
+
+type InvariantBrokenError struct {
+	Msg string
+	Num string
+}
+
+func (e InvariantBrokenError) Error() string {
+	return fmt.Sprintf(`invariance[%s] broken: %s`, e.Num, e.Msg)
+}

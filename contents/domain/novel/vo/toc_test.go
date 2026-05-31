@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/oklog/ulid/v2"
+	"github.com/samber/lo"
 )
 
 func TestTOCReorderVolume(t *testing.T) {
@@ -285,4 +286,114 @@ func TestChapterSequenceInVolume(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestTOC_chaptersSortedByVolumeID(t *testing.T) {
+	vid1, vid2, vid3, vid4, vid5, vol := vol5()
+	_, _, _, _, _, chp0 := chp5()
+	_, _, _, _, _, chp1 := chp5()
+	chp := append(chp0, chp1...)
+
+	resetChp := func() {
+		for i := range chp {
+			chp[i].VolumeID = ulid.Zero
+		}
+	}
+
+	t.Run(`1`, func(t *testing.T) {
+		resetChp()
+		lo.ForEach(chp, func(_ Chapter, i int) { chp[i].VolumeID = vid1 })
+		toc := TOC{chapters: chp, volumes: vol}
+		if err := toc.chaptersSortedByVolumeID(); err != nil {
+			t.Error(err)
+		}
+	})
+
+	t.Run(`normal_222_33_5`, func(t *testing.T) {
+		resetChp()
+
+		chp[0].VolumeID = vid2
+		chp[1].VolumeID = vid2
+		chp[2].VolumeID = vid2
+
+		chp[3].VolumeID = vid3
+		chp[4].VolumeID = vid3
+
+		for i := range chp[5:] {
+			chp[5+i].VolumeID = vid5
+		}
+
+		toc := TOC{chapters: chp, volumes: vol}
+		if err := toc.chaptersSortedByVolumeID(); err != nil {
+			t.Error(err)
+		}
+	})
+
+	t.Run(`232`, func(t *testing.T) {
+		resetChp()
+
+		chp[0].VolumeID = vid2
+		chp[1].VolumeID = vid3
+		lo.ForEach(chp[2:], func(_ Chapter, i int) { chp[i+2].VolumeID = vid2 })
+		toc := TOC{chapters: chp, volumes: vol}
+		if err := toc.chaptersSortedByVolumeID(); err == nil {
+			t.Error(err)
+		}
+	})
+
+	t.Run(`x4`, func(t *testing.T) {
+		resetChp()
+		chp[0].VolumeID = ulid.Make()
+		lo.ForEach(chp[1:], func(_ Chapter, i int) { chp[i+1].VolumeID = vid4 })
+		toc := TOC{chapters: chp, volumes: vol}
+		if err := toc.chaptersSortedByVolumeID(); err == nil {
+			t.Error(err)
+		}
+	})
+
+	t.Run(`4x`, func(t *testing.T) {
+		resetChp()
+		lo.ForEach(chp, func(_ Chapter, i int) { chp[i].VolumeID = vid4 })
+		chp[9].VolumeID = ulid.Make()
+		toc := TOC{chapters: chp, volumes: vol}
+		if err := toc.chaptersSortedByVolumeID(); err == nil {
+			t.Error(err)
+		}
+	})
+
+	t.Run(`21`, func(t *testing.T) {
+		resetChp()
+		chp[0].VolumeID = vid2
+		lo.ForEach(chp[1:], func(_ Chapter, i int) { chp[i+1].VolumeID = vid1 })
+		toc := TOC{chapters: chp, volumes: vol}
+		if err := toc.chaptersSortedByVolumeID(); err == nil {
+			t.Error(err)
+		}
+	})
+
+	t.Run(`221`, func(t *testing.T) {
+		resetChp()
+		chp[0].VolumeID = vid2
+		chp[1].VolumeID = vid2
+		lo.ForEach(chp[2:], func(_ Chapter, i int) { chp[i+2].VolumeID = vid1 })
+		toc := TOC{chapters: chp, volumes: vol}
+		if err := toc.chaptersSortedByVolumeID(); err == nil {
+			t.Error(err)
+		}
+	})
+}
+
+func helper(pattern string, chp []Chapter, vids ...ID) {
+	pattern = strings.ReplaceAll(pattern, `_`, ``)
+	for _, n := range pattern {
+		switch n {
+		case 'x':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		}
+	}
+
 }

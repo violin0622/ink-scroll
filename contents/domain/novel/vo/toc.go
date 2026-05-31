@@ -1,6 +1,8 @@
 package vo
 
 import (
+	"errors"
+	"fmt"
 	"slices"
 
 	"google.golang.org/grpc/codes"
@@ -11,6 +13,7 @@ import (
 // - Part-Chapter
 // - Chapter
 type TOC struct {
+	// chapters 按 VolumeID 排列，顺序与 volumes 顺序相同。
 	chapters []Chapter
 	volumes  []Volume
 }
@@ -291,20 +294,51 @@ func (t TOC) beginFromSentinel() error {
 	return nil
 }
 
-// func (t TOC) noRepeatedOrLostedChapterSequence() error {
-// 	for seq := range len(t.chapters) {
-// 		if t.chapters[seq].Sequence != seq {
-// 			return status.New(codes.Internal, `chapter sequence missed or repeated`).
-// 				Err()
-// 		}
-// 	}
-//
-// 	return nil
-// }
+func (t TOC) chaptersInVolume() error {
+	const InvariantNum = `I`
 
-// func (t TOC) chapterSequenceOrdered() error {
-// 	if slices.IsSortedFunc(t.chapters, ChapterCmp) {
-// 		return nil
-// 	}
-// 	return status.New(codes.Internal, `chapter sequence not ordered`).Err()
-// }
+	ok := slices.ContainsFunc(
+		t.chapters,
+		func(c Chapter) bool { return t.volumeByID(c.VolumeID) == -1 })
+
+	if !ok {
+		return InvariantBrokenError{
+			Msg: "Chapter has invalid VolumeID.",
+			Num: "InvariantNum",
+		}
+	}
+	return nil
+}
+
+// chaptersSortedByVolumeID 检查如下不变性：
+// 1. A 中的所有元素都属于 B；
+// 2. A 中的所有重复元素都相邻；
+// 3. A 中的元素顺序与 B 相同。
+//
+// 例如，
+//
+// A=[1,1,1,2,2,4,4] B = [1,2,4]  -->合法
+// A=[1,1,1,1,2,2,4,4] B=[1,2,3,4] --> 合法
+// A=[1,1,1,1,4,4,2] B=[1,4,2] --> 合法
+// A=[1,1,1,2,2,4,2] B=[1,2,4] --> 非法
+// A=[0,1,1,1,2,2,4,4] B=[1,2,4] --> 非法
+// A=[1,1,1,1,4,4,2,2] B=[1,2,4] --> 非法
+func (t TOC) chaptersSortedByVolumeID() error {
+
+	for c, v := 0, 0; c < len(t.chapters); {
+		// fmt.Println(c, t.chapters[c].VolumeID, v, t.volumes[v].ID)
+
+		if t.chapters[c].VolumeID == t.volumes[v].ID {
+			c += 1
+			continue
+		}
+
+		v += 1
+
+		if v >= len(t.volumes) {
+			return errors.New(`invalid`)
+		}
+	}
+
+	return nil
+}
