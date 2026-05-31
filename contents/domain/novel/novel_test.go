@@ -48,16 +48,13 @@ var _ = Describe(`NovelReplayEvents`, func() {
 			[]vo.Tag{vo.Tag(`修仙`), vo.Tag(`穿越`)},
 			[]vo.Tag{vo.Tag(`修仙`), vo.Tag(`穿越`), vo.Tag(`系统`)})
 		chapterUploaded1 = events.NewNewChapterUploaded(id, vo.Chapter{
-			ID:       ulid.Make(),
-			Sequence: 1,
+			ID: ulid.Make(),
 		}, 1500, time.Now().Add(-time.Minute))
 		chapterUploaded2 = events.NewNewChapterUploaded(id, vo.Chapter{
-			ID:       ulid.Make(),
-			Sequence: 2,
+			ID: ulid.Make(),
 		}, 1500, time.Now())
 		chapterRevised = events.NewChapterRevised(id, vo.Chapter{
-			ID:       ulid.Make(),
-			Sequence: 1,
+			ID: ulid.Make(),
 		})
 		nolongerUpdate = events.NewNolongerUpdate(id)
 		completed      = events.NewCompleted(id)

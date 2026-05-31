@@ -9,103 +9,132 @@ import (
 	"github.com/samber/lo"
 )
 
-func TestTOCReorderVolume(t *testing.T) {
-	id1, id2, id3, id4, id5 := ulid.Make(), ulid.Make(), ulid.Make(), ulid.Make(), ulid.Make()
-	vol5 := func() []Volume {
-		return []Volume{
-			{ID: id1, Title: "A"},
-			{ID: id2, Title: "B"},
-			{ID: id3, Title: "C"},
-			{ID: id4, Title: "D"},
-			{ID: id5, Title: "E"},
+// setupToc 解析以 ABBCDDDFF 形式的字符串，返回对应结构的 TOC。
+// 不存在的字母视为卷存在而章节不存在。
+// 需要至少传入一个字符。
+func setupToc(pattern string) (t TOC) {
+	volTitle, chpTitle := 'A', 'a'
+	t.volumes = []Volume{{ID: ulid.Make(), Title: `A`}}
+
+	for i := 0; i < len(pattern); {
+		if pattern[i] != byte(volTitle) {
+			volTitle += 1
+			t.volumes = append(t.volumes, Volume{
+				ID:    ulid.Make(),
+				Title: string(volTitle),
+			})
+			continue
+		}
+
+		t.chapters = append(t.chapters, Chapter{
+			ID:       ulid.Make(),
+			VolumeID: t.volumes[len(t.volumes)-1].ID,
+			Title:    string(chpTitle),
+		})
+		chpTitle += 1
+		i += 1
+	}
+
+	return
+}
+
+func Test_setupToc(t *testing.T) {
+	for _, p := range []string{
+		`A`,
+		`AAA`,
+		`ABB`,
+		`B`,
+		`BCD`,
+		`BD`,
+		`BDD`,
+		`AAABCCDDDD`,
+	} {
+		fmt.Println("")
+		fmt.Println(p)
+		toc := setupToc(p)
+		for i := range toc.volumes {
+			fmt.Println(toc.volumes[i])
+		}
+		for i := range toc.chapters {
+			fmt.Println(toc.chapters[i])
 		}
 	}
 
-	vol1 := func() []Volume { return []Volume{{ID: id1, Title: "A"}} }
+	t.Fail()
+}
 
+func TestTOCReorderVolume(t *testing.T) {
 	tests := []struct {
-		name   string
-		toc    TOC
-		id     ID
-		seq    int
-		expect string
+		name     string
+		toc      TOC
+		from, to int
+		expect   string
 	}{{
-		name:   `noop`,
-		toc:    TOC{volumes: vol5()},
-		id:     id1,
-		seq:    0,
+		name:   `noop-0`,
+		toc:    setupToc(`ABCDE`),
+		from:   0,
+		to:     0,
 		expect: `ABCDE`,
 	}, {
-		name:   `noop`,
-		toc:    TOC{volumes: vol5()},
-		id:     id3,
-		seq:    2,
+		name:   `noop-2`,
+		toc:    setupToc(`ABCDE`),
+		from:   2,
+		to:     2,
 		expect: `ABCDE`,
 	}, {
-		name:   `noop`,
-		toc:    TOC{volumes: vol5()},
-		id:     id5,
-		seq:    4,
+		name:   `noop-4`,
+		toc:    setupToc(`ABCDE`),
+		from:   4,
+		to:     4,
 		expect: `ABCDE`,
 	}, {
-		name:   `move backward adjacent`,
-		toc:    TOC{volumes: vol5()},
-		id:     id2,
-		seq:    0,
+		name:   `move right adjacent`,
+		toc:    setupToc(`ABCDE`),
+		from:   0,
+		to:     1,
 		expect: `BACDE`,
 	}, {
-		name:   `move backward`,
-		toc:    TOC{volumes: vol5()},
-		id:     id1,
-		seq:    1,
-		expect: `BACDE`,
-	}, {
-		name:   `move backward adjacent`,
-		toc:    TOC{volumes: vol5()},
-		id:     id3,
-		seq:    1,
+		name:   `move right adjacent`,
+		toc:    setupToc(`ABCDE`),
+		from:   1,
+		to:     2,
 		expect: `ACBDE`,
 	}, {
-		name:   `move backward adjacent`,
-		toc:    TOC{volumes: vol5()},
-		id:     id5,
-		seq:    3,
+		name:   `move right adjacent`,
+		toc:    setupToc(`ABCDE`),
+		from:   3,
+		to:     4,
 		expect: `ABCED`,
 	}, {
-		name:   `move backward`,
-		toc:    TOC{volumes: vol5()},
-		id:     id3,
-		seq:    0,
+		name:   `move left`,
+		toc:    setupToc(`ABCDE`),
+		from:   2,
+		to:     0,
 		expect: `CABDE`,
 	}, {
-		name:   `move backward`,
-		toc:    TOC{volumes: vol5()},
-		id:     id5,
-		seq:    0,
+		name:   `move left`,
+		toc:    setupToc(`ABCDE`),
+		from:   4,
+		to:     0,
 		expect: `EABCD`,
 	}, {
-		name:   `move forward adjacent`,
-		toc:    TOC{volumes: vol5()},
-		id:     id2,
-		seq:    0,
+		name:   `move left adjacent`,
+		toc:    setupToc(`ABCDE`),
+		from:   1,
+		to:     0,
 		expect: `BACDE`,
 	}, {
-		name:   `move forward adjacent`,
-		toc:    TOC{volumes: vol5()},
-		id:     id4,
-		seq:    4,
+		name:   `move left adjacent`,
+		toc:    setupToc(`ABCDE`),
+		from:   3,
+		to:     4,
 		expect: `ABCED`,
-	}, {
-		name:   `noop`,
-		toc:    TOC{volumes: vol1()},
-		id:     id1,
-		seq:    0,
-		expect: `A`,
 	}}
 
 	for i, tc := range tests {
 		t.Run(fmt.Sprintf(`%d_%s`, i, tc.name), func(t *testing.T) {
-			toc, err := tc.toc.ReorderVolume(tc.id, tc.seq)
+			id, seq := tc.toc.volumes[tc.from].ID, tc.to
+			toc, err := tc.toc.ReorderVolume(id, seq)
 			if err != nil {
 				t.Errorf(`unexpected error: %s`, err)
 			}
@@ -232,11 +261,11 @@ func chp5() (id1, id2, id3, id4, id5 ulid.ULID, chp []Chapter) {
 		ulid.Make()
 
 	chp = []Chapter{
-		{ID: id1},
-		{ID: id2},
-		{ID: id3},
-		{ID: id4},
-		{ID: id5},
+		{ID: id1, Title: `a`},
+		{ID: id2, Title: `b`},
+		{ID: id3, Title: `c`},
+		{ID: id4, Title: `d`},
+		{ID: id5, Title: `e`},
 	}
 
 	return
@@ -395,5 +424,4 @@ func helper(pattern string, chp []Chapter, vids ...ID) {
 		case '5':
 		}
 	}
-
 }

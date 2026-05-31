@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/oklog/ulid/v2"
+	"github.com/samber/lo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -31,43 +33,92 @@ func NewTOC(c ...Chapter) (TOC, error) {
 	return toc, toc.checkInvariants()
 }
 
-func (t *TOC) RenameVolume(id ID, title string) error {
-	i := slices.IndexFunc(
-		t.volumes,
-		func(v Volume) bool { return v.ID == id })
+func (t TOC) AppendChapter() { panic(`unimplement`) }
+func (t TOC) DropChapter()   { panic(`unimplement`) }
+
+// ReorderChapter change chapter sequence in same volume (relative sequence).
+func (t TOC) ReorderChapter() { panic(`unimplement`) }
+
+// MoveToVolume move chapter to target volume, this may cause sequance change.
+func (t TOC) MoveToVolume(cid, vid ID) { panic(`unimplement`) }
+
+func (t TOC) RenameVolume(vid ID, title string) (TOC, error) {
+	i := t.volumeByID(vid)
 	if i < 0 {
-		return ErrVolumeNotFound
-	}
-
-	t.volumes[i].Title = title
-	return nil
-}
-
-// ReorderVolume reset target volume to [seq].
-// seq must in the range [0, len(volumes))
-func (t TOC) ReorderVolume(id ID, seq int) (TOC, error) {
-	if seq < 0 || seq >= len(t.volumes) {
-		return t, ErrInvalidVolumeSequence
-	}
-
-	idx := t.volumeByID(id)
-	if idx < 0 {
 		return t, ErrVolumeNotFound
 	}
 
-	v := t.volumes[idx]
+	t.volumes[i] = t.volumes[i].Rename(title)
+	return t, nil
+}
+
+// ReorderVolume reset target volume to seq,
+// all chapters in the volume will be reset too.
+// seq must in the range [0, len(volumes))
+func (t TOC) ReorderVolume(vid ID, targetSeq int) (TOC, error) {
+	if targetSeq < 0 || targetSeq >= len(t.volumes) {
+		return t, ErrInvalidVolumeSequence
+	}
+
+	curSeq := t.volumeByID(vid)
+	if curSeq < 0 {
+		return t, ErrVolumeNotFound
+	}
+
+	fmt.Println(t.volumes)
+	fmt.Println(t.chapters)
+
 	switch {
-	case idx > seq: // move forward
-		for i := idx - 1; i >= seq; i-- {
-			t.volumes[i+1] = t.volumes[i]
-		}
-	case idx < seq: // move backward
-		copy(t.volumes[idx:], t.volumes[idx+1:seq+1])
+	case curSeq < targetSeq:
+		t.moveLeftToRight(curSeq, targetSeq)
+	case targetSeq < curSeq:
+		t.moveLeftToRight(targetSeq, curSeq)
 	default:
 	}
-	t.volumes[seq] = v
 
 	return t, nil
+}
+
+func (t *TOC) moveLeftToRight(l, r int) {
+	v := t.volumes[l]
+	copy(t.volumes[l:], t.volumes[l+1:r+1])
+	t.volumes[r] = v
+
+	lChpIdxs := t.ChaptersByVolume(t.volumes[l].ID)
+	rChpIdxs := t.ChaptersByVolume(t.volumes[r].ID)
+	ll, lr := lChpIdxs[0], lChpIdxs[len(lChpIdxs)-1]
+	rl, rr := rChpIdxs[0], rChpIdxs[len(rChpIdxs)-1]
+
+	fmt.Println(l, r)
+	fmt.Println(lChpIdxs, rChpIdxs)
+	fmt.Println(ll, lr, rl, rr)
+	tmp := make([]Chapter, len(lChpIdxs))
+	copy(tmp, t.chapters[ll:lr+1])
+	copy(t.chapters[ll:], t.chapters[lr+1:rr+1])
+	rcopy(t.chapters[:rr+1], tmp)
+}
+
+func (t *TOC) moveRightToLeft(l, r int) {
+	v := t.volumes[r]
+	rcopy(t.volumes[:r+1], t.volumes[l:r])
+	t.volumes[l] = v
+
+	lChpIdxs := t.ChaptersByVolume(t.volumes[l].ID)
+	rChpIdxs := t.ChaptersByVolume(t.volumes[r].ID)
+	ll, _ := lChpIdxs[0], lChpIdxs[len(lChpIdxs)-1]
+	rl, rr := rChpIdxs[0], rChpIdxs[len(rChpIdxs)-1]
+
+	tmp := make([]Chapter, len(rChpIdxs))
+	rcopy(tmp, t.chapters[rl:rr+1])
+	rcopy(t.chapters[:rr+1], t.chapters[ll:rl+1])
+	copy(t.chapters[ll:], tmp)
+}
+
+// rcopy is like copy in std, but from right to left.
+func rcopy[T any](dst, src []T) {
+	for i, j := len(dst)-1, len(src)-1; i >= 0 && j >= 0; i, j = i-1, j-1 {
+		dst[i] = src[j]
+	}
 }
 
 // DropVolume deletes a volume.
@@ -94,19 +145,17 @@ func (t TOC) DropVolume(vid ID) (TOC, error) {
 	return t, nil
 }
 
-func (t TOC) ChaptersByVolume(id ID) []int {
-	if i := t.volumeByID(id); i < 0 {
+func (t TOC) ChaptersByVolume(vid ID) []int {
+	if i := t.volumeByID(vid); i < 0 {
 		return nil
 	}
 
-	chapters := []int{}
-	for i := range t.chapters {
-		if t.chapters[i].VolumeID == id {
-			chapters = append(chapters, i)
-		}
-	}
-
-	return chapters
+	chp := lo.Filter(
+		t.chapters,
+		func(c Chapter, _ int) bool { return c.VolumeID == vid })
+	return lo.Map(
+		chp,
+		func(_ Chapter, i int) int { return i })
 }
 
 func (t TOC) volumeByID(id ID) int {
@@ -121,13 +170,13 @@ func (t TOC) UpdateVolumeDesc(id ID, desc string) (TOC, error) {
 		return t, ErrVolumeNotFound
 	}
 
-	t.volumes[i].Description = desc
+	t.volumes[i] = t.volumes[i].UpdateDescription(desc)
 	return t, nil
 }
 
+// NewVolume appends a new volume to TOC.
 // volume name must be unique.
 func (t *TOC) NewVolume(
-	id ID,
 	title, desc string,
 	kind VolumeKind,
 ) error {
@@ -142,7 +191,7 @@ func (t *TOC) NewVolume(
 	}
 
 	t.volumes = append(t.volumes, Volume{
-		ID:          id,
+		ID:          ulid.Make(),
 		Title:       title,
 		Description: desc,
 		Kind:        kind,
@@ -151,6 +200,7 @@ func (t *TOC) NewVolume(
 	return nil
 }
 
+// RestoreVolume are intend to be used when restore data from repo.
 func (t *TOC) RestoreVolume(
 	id ID,
 	title, desc string,
@@ -324,7 +374,6 @@ func (t TOC) chaptersInVolume() error {
 // A=[0,1,1,1,2,2,4,4] B=[1,2,4] --> 非法
 // A=[1,1,1,1,4,4,2,2] B=[1,2,4] --> 非法
 func (t TOC) chaptersSortedByVolumeID() error {
-
 	for c, v := 0, 0; c < len(t.chapters); {
 		// fmt.Println(c, t.chapters[c].VolumeID, v, t.volumes[v].ID)
 
