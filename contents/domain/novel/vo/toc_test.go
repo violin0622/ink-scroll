@@ -7,11 +7,12 @@ import (
 
 	"github.com/oklog/ulid/v2"
 	"github.com/samber/lo"
+
+	"play-ddd/utils/xtest"
 )
 
 // setupToc 解析以 ABBCDDDFF 形式的字符串，返回对应结构的 TOC。
 // 不存在的字母视为卷存在而章节不存在。
-// 需要至少传入一个字符。
 func setupToc(pattern string) (t TOC) {
 	volTitle, chpTitle := 'A', 'a'
 	t.volumes = []Volume{{ID: ulid.Make(), Title: `A`}}
@@ -29,107 +30,176 @@ func setupToc(pattern string) (t TOC) {
 		t.chapters = append(t.chapters, Chapter{
 			ID:       ulid.Make(),
 			VolumeID: t.volumes[len(t.volumes)-1].ID,
-			Title:    string(chpTitle),
+			title:    string(chpTitle),
 		})
 		chpTitle += 1
 		i += 1
 	}
 
-	return
+	return t
 }
 
-func Test_setupToc(t *testing.T) {
-	for _, p := range []string{
-		`A`,
-		`AAA`,
-		`ABB`,
-		`B`,
-		`BCD`,
-		`BD`,
-		`BDD`,
-		`AAABCCDDDD`,
-	} {
-		fmt.Println("")
-		fmt.Println(p)
-		toc := setupToc(p)
-		for i := range toc.volumes {
-			fmt.Println(toc.volumes[i])
-		}
-		for i := range toc.chapters {
-			fmt.Println(toc.chapters[i])
-		}
-	}
-
-	t.Fail()
-}
+// func Test_setupToc(t *testing.T) {
+// 	for _, p := range []string{
+// 		`A`,
+// 		`AAA`,
+// 		`ABB`,
+// 		`B`,
+// 		`BCD`,
+// 		`BD`,
+// 		`BDD`,
+// 		`AAABCCDDDD`,
+// 	} {
+// 		fmt.Println("")
+// 		fmt.Println(p)
+// 		toc := setupToc(p)
+// 		for i := range toc.volumes {
+// 			fmt.Println(toc.volumes[i])
+// 		}
+// 		for i := range toc.chapters {
+// 			fmt.Println(toc.chapters[i])
+// 		}
+// 	}
+// }
 
 func TestTOCReorderVolume(t *testing.T) {
 	tests := []struct {
-		name     string
-		toc      TOC
-		from, to int
-		expect   string
+		name      string
+		toc       TOC
+		from, to  int
+		expectVol string
+		expectChp string
 	}{{
-		name:   `noop-0`,
-		toc:    setupToc(`ABCDE`),
-		from:   0,
-		to:     0,
-		expect: `ABCDE`,
+		name:      `noop-0`,
+		toc:       setupToc(`ABCDE`),
+		from:      0,
+		to:        0,
+		expectVol: `ABCDE`,
+		expectChp: `abcde`,
 	}, {
-		name:   `noop-2`,
-		toc:    setupToc(`ABCDE`),
-		from:   2,
-		to:     2,
-		expect: `ABCDE`,
+		name:      `noop-2`,
+		toc:       setupToc(`ABCDE`),
+		from:      2,
+		to:        2,
+		expectVol: `ABCDE`,
+		expectChp: `abcde`,
 	}, {
-		name:   `noop-4`,
-		toc:    setupToc(`ABCDE`),
-		from:   4,
-		to:     4,
-		expect: `ABCDE`,
+		name:      `noop-4`,
+		toc:       setupToc(`ABCDE`),
+		from:      4,
+		to:        4,
+		expectVol: `ABCDE`,
+		expectChp: `abcde`,
 	}, {
-		name:   `move right adjacent`,
-		toc:    setupToc(`ABCDE`),
-		from:   0,
-		to:     1,
-		expect: `BACDE`,
+		name:      `noop-ma`,
+		toc:       setupToc(`AAABCDE`),
+		from:      4,
+		to:        4,
+		expectVol: `ABCDE`,
+		expectChp: `abcdefg`,
 	}, {
-		name:   `move right adjacent`,
-		toc:    setupToc(`ABCDE`),
-		from:   1,
-		to:     2,
-		expect: `ACBDE`,
+		name:      `noop-m`,
+		toc:       setupToc(`AAABCDE`),
+		from:      4,
+		to:        4,
+		expectVol: `ABCDE`,
+		expectChp: `abcdefg`,
 	}, {
-		name:   `move right adjacent`,
-		toc:    setupToc(`ABCDE`),
-		from:   3,
-		to:     4,
-		expect: `ABCED`,
+		name:      `noop-m`,
+		toc:       setupToc(`BCDEEEE`),
+		from:      4,
+		to:        4,
+		expectVol: `ABCDE`,
+		expectChp: `abcdefg`,
 	}, {
-		name:   `move left`,
-		toc:    setupToc(`ABCDE`),
-		from:   2,
-		to:     0,
-		expect: `CABDE`,
+		name:      `move right adjacent`,
+		toc:       setupToc(`ABCDE`),
+		from:      0,
+		to:        1,
+		expectVol: `BACDE`,
+		expectChp: `bacde`,
 	}, {
-		name:   `move left`,
-		toc:    setupToc(`ABCDE`),
-		from:   4,
-		to:     0,
-		expect: `EABCD`,
+		name:      `move right adjacent`,
+		toc:       setupToc(`AAABCDE`),
+		from:      0,
+		to:        1,
+		expectVol: `BACDE`,
+		expectChp: `dabcefg`,
 	}, {
-		name:   `move left adjacent`,
-		toc:    setupToc(`ABCDE`),
-		from:   1,
-		to:     0,
-		expect: `BACDE`,
+		name:      `move right adjacent`,
+		toc:       setupToc(`ABBBCDE`),
+		from:      0,
+		to:        1,
+		expectVol: `BACDE`,
+		expectChp: `bcdaefg`,
 	}, {
-		name:   `move left adjacent`,
-		toc:    setupToc(`ABCDE`),
-		from:   3,
-		to:     4,
-		expect: `ABCED`,
+		name:      `move right adjacent`,
+		toc:       setupToc(`BBBBCDE`),
+		from:      0,
+		to:        1,
+		expectVol: `BACDE`,
+		expectChp: `abcdefg`,
+	}, {
+		name:      `move right adjacent`,
+		toc:       setupToc(`AAAACDE`),
+		from:      0,
+		to:        1,
+		expectVol: `BACDE`,
+		expectChp: `abcdefg`,
+	}, {
+		name:      `move right adjacent`,
+		toc:       setupToc(`ABCDE`),
+		from:      1,
+		to:        2,
+		expectVol: `ACBDE`,
+		expectChp: `acbde`,
+	}, {
+		name:      `move right adjacent`,
+		toc:       setupToc(`ABCDE`),
+		from:      3,
+		to:        4,
+		expectVol: `ABCED`,
+		expectChp: `abced`,
+	}, {
+		name:      `move left`,
+		toc:       setupToc(`ABCDE`),
+		from:      2,
+		to:        0,
+		expectVol: `CABDE`,
+		expectChp: `cabde`,
+	}, {
+		name:      `move left`,
+		toc:       setupToc(`ABCDE`),
+		from:      4,
+		to:        0,
+		expectVol: `EABCD`,
+		expectChp: `eabcd`,
+	}, {
+		name:      `move left adjacent`,
+		toc:       setupToc(`ABCDE`),
+		from:      1,
+		to:        0,
+		expectVol: `BACDE`,
+		expectChp: `bacde`,
+	}, {
+		name:      `move left adjacent`,
+		toc:       setupToc(`ABCDE`),
+		from:      3,
+		to:        4,
+		expectVol: `ABCED`,
+		expectChp: `abced`,
 	}}
+
+	testcases := []struct {
+		xtest.Base
+		toc TOC
+	}{{
+		Base: xtest.New(`443Q65`),
+		toc:  setupToc(``),
+	}}
+	for _, tc := range testcases {
+		t.Run(tc.String(), func(t *testing.T) {})
+	}
 
 	for i, tc := range tests {
 		t.Run(fmt.Sprintf(`%d_%s`, i, tc.name), func(t *testing.T) {
@@ -139,8 +209,12 @@ func TestTOCReorderVolume(t *testing.T) {
 				t.Errorf(`unexpected error: %s`, err)
 			}
 
-			if toc.volTitles() != tc.expect {
+			if toc.volTitles() != tc.expectVol {
 				t.Errorf(`unexpected sequence: %s`, tc.toc.volTitles())
+			}
+
+			if toc.chpTitles() != tc.expectChp {
+				t.Errorf(`unexpected sequence: %s`, tc.toc.chpTitles())
 			}
 		})
 	}
@@ -241,13 +315,22 @@ func vol5() (id1, id2, id3, id4, id5 ulid.ULID, vol []Volume) {
 		{ID: id5, Title: "E"},
 	}
 
-	return
+	return id1, id2, id3, id4, id5, vol
 }
 
 func (t TOC) volTitles() string {
 	var sb strings.Builder
 	for i := range t.volumes {
 		sb.WriteString(t.volumes[i].Title)
+	}
+
+	return sb.String()
+}
+
+func (t TOC) chpTitles() string {
+	var sb strings.Builder
+	for i := range t.chapters {
+		sb.WriteString(t.chapters[i].title)
 	}
 
 	return sb.String()
@@ -261,14 +344,14 @@ func chp5() (id1, id2, id3, id4, id5 ulid.ULID, chp []Chapter) {
 		ulid.Make()
 
 	chp = []Chapter{
-		{ID: id1, Title: `a`},
-		{ID: id2, Title: `b`},
-		{ID: id3, Title: `c`},
-		{ID: id4, Title: `d`},
-		{ID: id5, Title: `e`},
+		{ID: id1, title: `a`},
+		{ID: id2, title: `b`},
+		{ID: id3, title: `c`},
+		{ID: id4, title: `d`},
+		{ID: id5, title: `e`},
 	}
 
-	return
+	return id1, id2, id3, id4, id5, chp
 }
 
 func TestChapterSequenceInVolume(t *testing.T) {
@@ -410,6 +493,108 @@ func TestTOC_chaptersSortedByVolumeID(t *testing.T) {
 			t.Error(err)
 		}
 	})
+}
+
+func TestTOC_chapterRangeByVolumeIndex(t *testing.T) {
+	testcases := []struct {
+		xtest.Base
+		toc              TOC
+		vi               int
+		expectL, expectR int
+	}{{
+		Base:    xtest.New(`JP9F7R`),
+		toc:     setupToc(``),
+		vi:      0,
+		expectL: 0,
+		expectR: 0,
+	}, {
+		Base:    xtest.New(`CWM3PS`),
+		toc:     setupToc(`A`),
+		vi:      0,
+		expectL: 0,
+		expectR: 1,
+	}, {
+		Base:    xtest.New(`YCMW7Z`),
+		toc:     setupToc(`AAA`),
+		vi:      0,
+		expectL: 0,
+		expectR: 3,
+	}, {
+		Base:    xtest.New(`YCMQXB`),
+		toc:     setupToc(`AAA`),
+		vi:      -1,
+		expectL: -1,
+		expectR: -1,
+	}, {
+		Base:    xtest.New(`YCMWMP`),
+		toc:     setupToc(`AAA`),
+		vi:      2,
+		expectL: -1,
+		expectR: -1,
+	}, {
+		Base:    xtest.New(`8K2HD6`),
+		toc:     setupToc(`ABBB`),
+		vi:      0,
+		expectL: 0,
+		expectR: 1,
+	}, {
+		Base:    xtest.New(`8K2QSZ`),
+		toc:     setupToc(`ABBBCC`),
+		vi:      1,
+		expectL: 1,
+		expectR: 4,
+	}, {
+		Base:    xtest.New(`2YLEE2`),
+		toc:     setupToc(`B`),
+		vi:      0,
+		expectL: 0,
+		expectR: 0,
+	}, {
+		Base:    xtest.New(`2YLFJB`),
+		toc:     setupToc(`B`),
+		vi:      1,
+		expectL: 0,
+		expectR: 1,
+	}, {
+		Base:    xtest.New(`2YLZE2`),
+		toc:     setupToc(`B`),
+		vi:      2,
+		expectL: -1,
+		expectR: -1,
+	}, {
+		Base:    xtest.New(`CB9NP9`),
+		toc:     setupToc(`C`),
+		vi:      1,
+		expectL: 0,
+		expectR: 0,
+	}, {
+		Base:    xtest.New(`9YVH5B`),
+		toc:     setupToc(`C`),
+		vi:      2,
+		expectL: 0,
+		expectR: 1,
+	}, {
+		Base:    xtest.New(`82BUGX`),
+		toc:     setupToc(`CDD`),
+		vi:      3,
+		expectL: 1,
+		expectR: 3,
+	}}
+
+	for _, tc := range testcases {
+		t.Run(tc.String(), func(t *testing.T) {
+			l, r := tc.toc.chapterRangeByVolumeIndex(tc.vi)
+			if l != tc.expectL || r != tc.expectR {
+				t.Errorf(
+					`expect: %d %d, actual: %d %d`,
+					tc.expectL,
+					tc.expectR,
+					l,
+					r,
+				)
+			}
+		})
+	}
 }
 
 func helper(pattern string, chp []Chapter, vids ...ID) {

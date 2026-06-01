@@ -20,22 +20,78 @@ func TestCodeHelpersWithDetails(t *testing.T) {
 		code codes.Code
 		fn   func(string, ...protoadapt.MessageV1) error
 	}{
-		{name: "Canceled", code: codes.Canceled, fn: statusx.CanceledWithDetails},
+		{
+			name: "Canceled",
+			code: codes.Canceled,
+			fn:   statusx.CanceledWithDetails,
+		},
 		{name: "Unknown", code: codes.Unknown, fn: statusx.UnknownWithDetails},
-		{name: "InvalidArgument", code: codes.InvalidArgument, fn: statusx.InvalidArgumentWithDetails},
-		{name: "DeadlineExceeded", code: codes.DeadlineExceeded, fn: statusx.DeadlineExceededWithDetails},
-		{name: "NotFound", code: codes.NotFound, fn: statusx.NotFoundWithDetails},
-		{name: "AlreadyExists", code: codes.AlreadyExists, fn: statusx.AlreadyExistsWithDetails},
-		{name: "PermissionDenied", code: codes.PermissionDenied, fn: statusx.PermissionDeniedWithDetails},
-		{name: "ResourceExhausted", code: codes.ResourceExhausted, fn: statusx.ResourceExhaustedWithDetails},
-		{name: "FailedPrecondition", code: codes.FailedPrecondition, fn: statusx.FailedPreconditionWithDetails},
+		{
+			name: "InvalidArgument",
+			code: codes.InvalidArgument,
+			fn:   statusx.InvalidArgumentWithDetails,
+		},
+		{
+			name: "DeadlineExceeded",
+			code: codes.DeadlineExceeded,
+			fn:   statusx.DeadlineExceededWithDetails,
+		},
+		{
+			name: "NotFound",
+			code: codes.NotFound,
+			fn:   statusx.NotFoundWithDetails,
+		},
+		{
+			name: "AlreadyExists",
+			code: codes.AlreadyExists,
+			fn:   statusx.AlreadyExistsWithDetails,
+		},
+		{
+			name: "PermissionDenied",
+			code: codes.PermissionDenied,
+			fn:   statusx.PermissionDeniedWithDetails,
+		},
+		{
+			name: "ResourceExhausted",
+			code: codes.ResourceExhausted,
+			fn:   statusx.ResourceExhaustedWithDetails,
+		},
+		{
+			name: "FailedPrecondition",
+			code: codes.FailedPrecondition,
+			fn:   statusx.FailedPreconditionWithDetails,
+		},
 		{name: "Aborted", code: codes.Aborted, fn: statusx.AbortedWithDetails},
-		{name: "OutOfRange", code: codes.OutOfRange, fn: statusx.OutOfRangeWithDetails},
-		{name: "Unimplemented", code: codes.Unimplemented, fn: statusx.UnimplementedWithDetails},
-		{name: "Internal", code: codes.Internal, fn: statusx.InternalWithDetails},
-		{name: "Unavailable", code: codes.Unavailable, fn: statusx.UnavailableWithDetails},
-		{name: "DataLoss", code: codes.DataLoss, fn: statusx.DataLossWithDetails},
-		{name: "Unauthenticated", code: codes.Unauthenticated, fn: statusx.UnauthenticatedWithDetails},
+		{
+			name: "OutOfRange",
+			code: codes.OutOfRange,
+			fn:   statusx.OutOfRangeWithDetails,
+		},
+		{
+			name: "Unimplemented",
+			code: codes.Unimplemented,
+			fn:   statusx.UnimplementedWithDetails,
+		},
+		{
+			name: "Internal",
+			code: codes.Internal,
+			fn:   statusx.InternalWithDetails,
+		},
+		{
+			name: "Unavailable",
+			code: codes.Unavailable,
+			fn:   statusx.UnavailableWithDetails,
+		},
+		{
+			name: "DataLoss",
+			code: codes.DataLoss,
+			fn:   statusx.DataLossWithDetails,
+		},
+		{
+			name: "Unauthenticated",
+			code: codes.Unauthenticated,
+			fn:   statusx.UnauthenticatedWithDetails,
+		},
 	}
 
 	for _, tt := range tests {
@@ -240,7 +296,11 @@ func TestBuilderAggregatesRepeatedDetails(t *testing.T) {
 		t.Fatalf("quota violations = %d, want 2", got)
 	}
 	if got := quota.GetViolations()[1].GetDescription(); got != "daily limit exceeded" {
-		t.Fatalf("second quota description = %q, want %q", got, "daily limit exceeded")
+		t.Fatalf(
+			"second quota description = %q, want %q",
+			got,
+			"daily limit exceeded",
+		)
 	}
 
 	help := findDetail[*epb.Help](t, details)
@@ -248,7 +308,11 @@ func TestBuilderAggregatesRepeatedDetails(t *testing.T) {
 		t.Fatalf("help links = %d, want 2", got)
 	}
 	if got := help.GetLinks()[0].GetUrl(); got != "https://example.test/docs" {
-		t.Fatalf("first help link URL = %q, want %q", got, "https://example.test/docs")
+		t.Fatalf(
+			"first help link URL = %q, want %q",
+			got,
+			"https://example.test/docs",
+		)
 	}
 }
 
@@ -275,7 +339,11 @@ func TestBuilderAddsStandaloneDetails(t *testing.T) {
 	details := st.Details()
 	info := findDetail[*epb.ErrorInfo](t, details)
 	if info.GetReason() != "TEMPORARY" {
-		t.Fatalf("error info reason = %q, want %q", info.GetReason(), "TEMPORARY")
+		t.Fatalf(
+			"error info reason = %q, want %q",
+			info.GetReason(),
+			"TEMPORARY",
+		)
 	}
 
 	retry := findDetail[*epb.RetryInfo](t, details)

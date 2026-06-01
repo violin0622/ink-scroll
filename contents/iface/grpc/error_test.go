@@ -29,7 +29,10 @@ func TestUnknownErrorWithDebugStacktraceSkipsHelper(t *testing.T) {
 		t.Fatal("debug stack entries are empty")
 	}
 	if strings.Contains(entries[0], "unknownErrorWithDebugStacktrace") {
-		t.Fatalf("first stack entry = %q, want helper to be skipped", entries[0])
+		t.Fatalf(
+			"first stack entry = %q, want helper to be skipped",
+			entries[0],
+		)
 	}
 	if !strings.Contains(entries[0], "unknownErrorForStacktraceTest") {
 		t.Fatalf("first stack entry = %q, want caller frame", entries[0])

@@ -1,7 +1,6 @@
 package vo
 
 import (
-	"errors"
 	"fmt"
 	"slices"
 
@@ -11,9 +10,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// Can be either:
-// - Part-Chapter
-// - Chapter
+var _ = fmt.Println
+
 type TOC struct {
 	// chapters 按 VolumeID 排列，顺序与 volumes 顺序相同。
 	chapters []Chapter
@@ -33,14 +31,80 @@ func NewTOC(c ...Chapter) (TOC, error) {
 	return toc, toc.checkInvariants()
 }
 
-func (t TOC) AppendChapter() { panic(`unimplement`) }
-func (t TOC) DropChapter()   { panic(`unimplement`) }
+func Err(e error) (TOC, error) {
+	return TOC{}, e
+}
+
+func (t TOC) AppendChapter(vid ID) (TOC, error) {
+	i := t.volumeByID(vid)
+	if i < 0 {
+		return TOC{}, ErrVolumeNotFound
+	}
+
+	_, r := t.chapterRangeByVolumeIndex(i)
+	c := Chapter{ID: ulid.Make(), VolumeID: vid}
+
+	t.chapters = append(t.chapters, Chapter{})
+	rcopy(t.chapters[r:], t.chapters)
+	t.chapters[r] = c
+
+	return t, nil
+}
+
+func (t TOC) DropChapter(cid ID) (TOC, error) {
+	i := t.chapterByID(cid)
+	if i < 0 {
+		return TOC{}, ErrChapterNotFound
+	}
+
+	copy(t.chapters[i:], t.chapters[i+1:])
+
+	return t, nil
+}
 
 // ReorderChapter change chapter sequence in same volume (relative sequence).
-func (t TOC) ReorderChapter() { panic(`unimplement`) }
+// seq less than 0, or greater than len(t.chapters) will cause chapter move to
+// first or last sequence in the volume.
+func (t TOC) ReorderChapter(cid ID, targetSeq int) (TOC, error) {
+	i := t.chapterByID(cid)
+	if i < 0 {
+		return t.err(ErrChapterNotFound)
+	}
 
-// MoveToVolume move chapter to target volume, this may cause sequance change.
-func (t TOC) MoveToVolume(cid, vid ID) { panic(`unimplement`) }
+	vid := t.volumeByID(t.chapters[i].VolumeID)
+	l, r := t.chapterRangeByVolumeIndex(vid)
+	if l < 0 {
+		// In a normal toc, this branch should not reach.
+		return t.err(ErrVolumeNotFound)
+	}
+
+	// convert relative seq to absolute seq.
+	curSeq := i
+	targetSeq = max(0, targetSeq)
+	targetSeq = min(targetSeq, r-l)
+	targetSeq += l
+
+	switch {
+	case curSeq < targetSeq:
+		c := t.chapters[curSeq]
+		copy(t.chapters[curSeq:], t.chapters[curSeq+1:targetSeq+1])
+		t.chapters[targetSeq] = c
+	case targetSeq < curSeq:
+		c := t.chapters[targetSeq]
+		copy(t.chapters[targetSeq:], t.chapters[targetSeq+1:curSeq+1])
+		t.chapters[curSeq] = c
+	default:
+		// no op
+	}
+
+	return t.maybeOk()
+}
+
+// MoveToVolume move chapter to target volume, this may cause sequence change.
+// chapter will be last in the target volume.
+func (t TOC) MoveToVolume(cid, vid ID) (TOC, error) {
+	panic(`unimplement`)
+}
 
 func (t TOC) RenameVolume(vid ID, title string) (TOC, error) {
 	i := t.volumeByID(vid)
@@ -49,7 +113,7 @@ func (t TOC) RenameVolume(vid ID, title string) (TOC, error) {
 	}
 
 	t.volumes[i] = t.volumes[i].Rename(title)
-	return t, nil
+	return t, t.checkInvariants()
 }
 
 // ReorderVolume reset target volume to seq,
@@ -57,60 +121,156 @@ func (t TOC) RenameVolume(vid ID, title string) (TOC, error) {
 // seq must in the range [0, len(volumes))
 func (t TOC) ReorderVolume(vid ID, targetSeq int) (TOC, error) {
 	if targetSeq < 0 || targetSeq >= len(t.volumes) {
-		return t, ErrInvalidVolumeSequence
+		return t.err(ErrInvalidVolumeSequence)
 	}
 
 	curSeq := t.volumeByID(vid)
 	if curSeq < 0 {
-		return t, ErrVolumeNotFound
+		return t.err(ErrVolumeNotFound)
 	}
-
-	fmt.Println(t.volumes)
-	fmt.Println(t.chapters)
 
 	switch {
 	case curSeq < targetSeq:
-		t.moveLeftToRight(curSeq, targetSeq)
+		t.moveLeftToRightV2(curSeq, targetSeq)
 	case targetSeq < curSeq:
-		t.moveLeftToRight(targetSeq, curSeq)
+		t.moveRightToLeftV2(targetSeq, curSeq)
 	default:
 	}
 
+	return t.maybeOk()
+}
+
+func (t TOC) err(e error) (TOC, error) { return TOC{}, e }
+func (t TOC) maybeOk() (TOC, error) {
+	if e := t.checkInvariants(); e != nil {
+		return t.err(e)
+	}
 	return t, nil
 }
 
-func (t *TOC) moveLeftToRight(l, r int) {
+func (t *TOC) moveLeftToRightV2(l, r int) {
+	ll, lr := t.chapterRangeByVolumeIndex(l)
+	rl, rr := t.chapterRangeByVolumeIndex(r)
+
 	v := t.volumes[l]
 	copy(t.volumes[l:], t.volumes[l+1:r+1])
 	t.volumes[r] = v
 
+	if ll == lr {
+		return
+	}
+	if rl == rr {
+	}
+
+	tmp := make([]Chapter, lr-ll)
+	copy(tmp, t.chapters[ll:lr])
+	copy(t.chapters[ll:], t.chapters[lr:rr])
+	rcopy(t.chapters[:rr], tmp)
+}
+
+func (t *TOC) moveLeftToRight(l, r int) {
+	// lo.ForEach(t.volumes, func(v Volume, _ int) { fmt.Println(v) })
+	// lo.ForEach(t.chapters, func(c Chapter, _ int) { fmt.Println(c) })
+	// fmt.Println(l, r)
+	// fmt.Println(ll, lr, rl, rr)
 	lChpIdxs := t.ChaptersByVolume(t.volumes[l].ID)
 	rChpIdxs := t.ChaptersByVolume(t.volumes[r].ID)
-	ll, lr := lChpIdxs[0], lChpIdxs[len(lChpIdxs)-1]
-	rl, rr := rChpIdxs[0], rChpIdxs[len(rChpIdxs)-1]
 
-	fmt.Println(l, r)
-	fmt.Println(lChpIdxs, rChpIdxs)
-	fmt.Println(ll, lr, rl, rr)
+	v := t.volumes[l]
+	copy(t.volumes[l:], t.volumes[l+1:r+1])
+	t.volumes[r] = v
+
+	if len(lChpIdxs) == 0 {
+		return
+	}
+	ll, lr := lChpIdxs[0], lChpIdxs[len(lChpIdxs)-1]
+	_, rr := rChpIdxs[0], rChpIdxs[len(rChpIdxs)-1]
+
 	tmp := make([]Chapter, len(lChpIdxs))
 	copy(tmp, t.chapters[ll:lr+1])
 	copy(t.chapters[ll:], t.chapters[lr+1:rr+1])
 	rcopy(t.chapters[:rr+1], tmp)
 }
 
-func (t *TOC) moveRightToLeft(l, r int) {
+// chapterRangeByVolumeIndex returns a left-open and right-closed index
+// interval.
+// of given volumes at vi.
+func (t *TOC) chapterRangeByVolumeIndex(vi int) (l, r int) {
+	if vi < 0 || vi >= len(t.volumes) {
+		return -1, -1
+	}
+
+	var v int
+	var ok bool // whether we found a l index.
+
+	for i := 0; i < len(t.chapters); {
+		if ok {
+			if v != vi {
+				r = i
+				break
+			}
+		} else {
+			if v == vi {
+				l = i
+				ok = true
+			}
+		}
+
+		if t.chapters[i].VolumeID != t.volumes[v].ID {
+			v += 1
+		} else {
+			i += 1
+		}
+	}
+
+	if v != vi {
+		return l, r
+	} else {
+		return l, len(t.chapters)
+	}
+}
+
+func (t *TOC) moveRightToLeftV2(l, r int) {
+	ll, _ := t.chapterRangeByVolumeIndex(l)
+	rl, rr := t.chapterRangeByVolumeIndex(r)
+
 	v := t.volumes[r]
 	rcopy(t.volumes[:r+1], t.volumes[l:r])
 	t.volumes[l] = v
 
+	if rr-rl == 0 {
+		return
+	}
+
+	tmp := make([]Chapter, rr-rl)
+	rcopy(tmp, t.chapters[rl:rr])
+	rcopy(t.chapters[:rr], t.chapters[ll:rl])
+	copy(t.chapters[ll:], tmp)
+}
+
+func (t *TOC) moveRightToLeft(l, r int) {
 	lChpIdxs := t.ChaptersByVolume(t.volumes[l].ID)
 	rChpIdxs := t.ChaptersByVolume(t.volumes[r].ID)
+	//
+	// lo.ForEach(t.volumes, func(v Volume, _ int) { fmt.Println(v) })
+	// lo.ForEach(t.chapters, func(c Chapter, _ int) { fmt.Println(c) })
+	// fmt.Println(l, r)
+	// fmt.Println(ll, lr, rl, rr)
+	//
+
+	v := t.volumes[r]
+	rcopy(t.volumes[:r+1], t.volumes[l:r])
+	t.volumes[l] = v
+
+	if len(rChpIdxs) == 0 {
+		return
+	}
 	ll, _ := lChpIdxs[0], lChpIdxs[len(lChpIdxs)-1]
 	rl, rr := rChpIdxs[0], rChpIdxs[len(rChpIdxs)-1]
 
 	tmp := make([]Chapter, len(rChpIdxs))
 	rcopy(tmp, t.chapters[rl:rr+1])
-	rcopy(t.chapters[:rr+1], t.chapters[ll:rl+1])
+	rcopy(t.chapters[:rr+1], t.chapters[ll:rl])
 	copy(t.chapters[ll:], tmp)
 }
 
@@ -145,21 +305,25 @@ func (t TOC) DropVolume(vid ID) (TOC, error) {
 	return t, nil
 }
 
+// ChaptersByVolume returns chapters index in the vid Volume.
 func (t TOC) ChaptersByVolume(vid ID) []int {
 	if i := t.volumeByID(vid); i < 0 {
 		return nil
 	}
 
-	chp := lo.Filter(
-		t.chapters,
-		func(c Chapter, _ int) bool { return c.VolumeID == vid })
-	return lo.Map(
-		chp,
-		func(_ Chapter, i int) int { return i })
+	return lo.FilterMap(t.chapters, func(c Chapter, i int) (int, bool) {
+		if c.VolumeID == vid {
+			return i, true
+		}
+		return 0, false
+	})
 }
 
 func (t TOC) volumeByID(id ID) int {
-	return slices.IndexFunc(t.volumes, func(v Volume) bool { return v.ID == id })
+	return slices.IndexFunc(
+		t.volumes,
+		func(v Volume) bool { return v.ID == id },
+	)
 }
 
 func (t TOC) UpdateVolumeDesc(id ID, desc string) (TOC, error) {
@@ -176,31 +340,32 @@ func (t TOC) UpdateVolumeDesc(id ID, desc string) (TOC, error) {
 
 // NewVolume appends a new volume to TOC.
 // volume name must be unique.
-func (t *TOC) NewVolume(
+func (t TOC) AppendVolume(
 	title, desc string,
 	kind VolumeKind,
-) error {
+) (TOC, Volume, error) {
 	i := slices.IndexFunc(t.volumes, func(v Volume) bool {
 		return v.Title == title
 	})
 	if i >= 0 {
-		return VolumeTitleAlreadyExistError{
+		return TOC{}, Volume{}, VolumeTitleAlreadyExistError{
 			ID:    t.volumes[i].ID,
 			Title: title,
 		}
 	}
 
-	t.volumes = append(t.volumes, Volume{
+	v := Volume{
 		ID:          ulid.Make(),
 		Title:       title,
 		Description: desc,
 		Kind:        kind,
-	})
+	}
+	t.volumes = append(t.volumes, v)
 
-	return nil
+	return t, v, nil
 }
 
-// RestoreVolume are intend to be used when restore data from repo.
+// RestoreVolume are intend to be internal used when restore data from repo.
 func (t *TOC) RestoreVolume(
 	id ID,
 	title, desc string,
@@ -250,23 +415,22 @@ func (t TOC) ChapterCount() int {
 // 	return c
 // }
 
-func (t TOC) Append(c Chapter) (TOC, error) {
-	t.chapters = append(t.chapters, c)
-	return t, t.checkInvariants()
-}
+// func (t TOC) Append(c Chapter) (TOC, error) {
+// 	t.chapters = append(t.chapters, c)
+// 	return t, t.checkInvariants()
+// }
 
-func (t TOC) Pop() (nt TOC, c Chapter, err error) {
-	if t.isEmpty() {
-		return t, c, ErrNoContent
-	}
+// func (t TOC) Pop() (nt TOC, c Chapter, err error) {
+// 	if t.isEmpty() {
+// 		return t, c, ErrNoContent
+// 	}
+//
+// 	last := len(t.chapters) - 1
+// 	c, t.chapters = t.chapters[last], t.chapters[:last]
+//
+// 	return t, c, t.checkInvariants()
+// }
 
-	last := len(t.chapters) - 1
-	c, t.chapters = t.chapters[last], t.chapters[:last]
-
-	return t, c, t.checkInvariants()
-}
-
-func (t TOC) ChapterSequence(cid ID) int { return len(t.chapters) }
 func (t TOC) ChapterSequenceInVolume(cid ID) int {
 	i := t.chapterByID(cid)
 	if i < 0 {
@@ -285,20 +449,11 @@ func (t TOC) ChapterSequenceInVolume(cid ID) int {
 }
 
 func (t TOC) chapterByID(cid ID) int {
-	return slices.IndexFunc(t.chapters, func(c Chapter) bool { return c.ID == cid })
+	return slices.IndexFunc(
+		t.chapters,
+		func(c Chapter) bool { return c.ID == cid },
+	)
 }
-
-// Revise applies title and wordCount to chapter at seq sequence,
-// returns original chapter.
-// func (t TOC) Revise(c Chapter) (nt TOC, origin Chapter, err error) {
-// 	if !t.isValidSequence(c.Sequence) {
-// 		return t, c, ErrInvalidChapterSequence
-// 	}
-//
-// 	origin, t.chapters[c.Sequence] = t.chapters[c.Sequence], c
-//
-// 	return t, origin, t.checkInvariants()
-// }
 
 func (t TOC) isValidSequence(seq int) bool {
 	return seq >= 1 && seq < len(t.chapters)
@@ -308,8 +463,9 @@ func (t TOC) isEmpty() bool { return len(t.chapters) == 1 }
 
 func (t TOC) checkInvariants() error {
 	invariants := []func() error{
-		t.beginFromSentinel,
-		t.atleastOneVolume,
+		// t.beginFromSentinel,
+		t.atleastOneMainVolume,
+		t.chaptersSortedByVolumeID,
 	}
 
 	for _, fn := range invariants {
@@ -329,9 +485,13 @@ func (t TOC) firstChapterGoesMainVolume() error {
 	return nil
 }
 
-func (t TOC) atleastOneVolume() error {
-	if len(t.chapters) < 2 {
-		return status.New(codes.Internal, `at least one chapter`).Err()
+func (t TOC) atleastOneMainVolume() error {
+	if ok := lo.ContainsBy(t.volumes, func(v Volume) bool {
+		return v.Kind == Main
+	}); !ok {
+		return InvariantBrokenError{
+			Msg: `MUST have at least one volume of main kind.`,
+		}
 	}
 	return nil
 }
@@ -340,22 +500,6 @@ func (t TOC) beginFromSentinel() error {
 	if len(t.chapters) < 1 ||
 		t.chapters[0] != SentinelChapter {
 		return status.New(codes.Internal, `TOC structure destoyed`).Err()
-	}
-	return nil
-}
-
-func (t TOC) chaptersInVolume() error {
-	const InvariantNum = `I`
-
-	ok := slices.ContainsFunc(
-		t.chapters,
-		func(c Chapter) bool { return t.volumeByID(c.VolumeID) == -1 })
-
-	if !ok {
-		return InvariantBrokenError{
-			Msg: "Chapter has invalid VolumeID.",
-			Num: "InvariantNum",
-		}
 	}
 	return nil
 }
@@ -375,8 +519,6 @@ func (t TOC) chaptersInVolume() error {
 // A=[1,1,1,1,4,4,2,2] B=[1,2,4] --> 非法
 func (t TOC) chaptersSortedByVolumeID() error {
 	for c, v := 0, 0; c < len(t.chapters); {
-		// fmt.Println(c, t.chapters[c].VolumeID, v, t.volumes[v].ID)
-
 		if t.chapters[c].VolumeID == t.volumes[v].ID {
 			c += 1
 			continue
@@ -385,7 +527,9 @@ func (t TOC) chaptersSortedByVolumeID() error {
 		v += 1
 
 		if v >= len(t.volumes) {
-			return errors.New(`invalid`)
+			return InvariantBrokenError{
+				Msg: `chapters MUST be arranged in the same way as volumes`,
+			}
 		}
 	}
 

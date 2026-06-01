@@ -1,11 +1,10 @@
 package vo
 
+// Part is a higher layer than Volume in content organization,
+// useless currently.
 type Part struct {
-	// Seq must be a positive number.
-	Seq int
+	ID ID
 
-	// Name is optional
-	Name string
-
-	Chapters []Chapter
+	// Title is optional
+	Title string
 }

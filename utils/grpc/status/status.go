@@ -1,9 +1,8 @@
 package status
 
 import (
-	"time"
-
 	"slices"
+	"time"
 
 	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
@@ -32,11 +31,17 @@ func UnknownWithDetails(msg string, details ...protoadapt.MessageV1) error {
 	return NewWithDetails(codes.Unknown, msg, details...)
 }
 
-func InvalidArgumentWithDetails(msg string, details ...protoadapt.MessageV1) error {
+func InvalidArgumentWithDetails(
+	msg string,
+	details ...protoadapt.MessageV1,
+) error {
 	return NewWithDetails(codes.InvalidArgument, msg, details...)
 }
 
-func DeadlineExceededWithDetails(msg string, details ...protoadapt.MessageV1) error {
+func DeadlineExceededWithDetails(
+	msg string,
+	details ...protoadapt.MessageV1,
+) error {
 	return NewWithDetails(codes.DeadlineExceeded, msg, details...)
 }
 
@@ -44,19 +49,31 @@ func NotFoundWithDetails(msg string, details ...protoadapt.MessageV1) error {
 	return NewWithDetails(codes.NotFound, msg, details...)
 }
 
-func AlreadyExistsWithDetails(msg string, details ...protoadapt.MessageV1) error {
+func AlreadyExistsWithDetails(
+	msg string,
+	details ...protoadapt.MessageV1,
+) error {
 	return NewWithDetails(codes.AlreadyExists, msg, details...)
 }
 
-func PermissionDeniedWithDetails(msg string, details ...protoadapt.MessageV1) error {
+func PermissionDeniedWithDetails(
+	msg string,
+	details ...protoadapt.MessageV1,
+) error {
 	return NewWithDetails(codes.PermissionDenied, msg, details...)
 }
 
-func ResourceExhaustedWithDetails(msg string, details ...protoadapt.MessageV1) error {
+func ResourceExhaustedWithDetails(
+	msg string,
+	details ...protoadapt.MessageV1,
+) error {
 	return NewWithDetails(codes.ResourceExhausted, msg, details...)
 }
 
-func FailedPreconditionWithDetails(msg string, details ...protoadapt.MessageV1) error {
+func FailedPreconditionWithDetails(
+	msg string,
+	details ...protoadapt.MessageV1,
+) error {
 	return NewWithDetails(codes.FailedPrecondition, msg, details...)
 }
 
@@ -68,7 +85,10 @@ func OutOfRangeWithDetails(msg string, details ...protoadapt.MessageV1) error {
 	return NewWithDetails(codes.OutOfRange, msg, details...)
 }
 
-func UnimplementedWithDetails(msg string, details ...protoadapt.MessageV1) error {
+func UnimplementedWithDetails(
+	msg string,
+	details ...protoadapt.MessageV1,
+) error {
 	return NewWithDetails(codes.Unimplemented, msg, details...)
 }
 
@@ -84,7 +104,10 @@ func DataLossWithDetails(msg string, details ...protoadapt.MessageV1) error {
 	return NewWithDetails(codes.DataLoss, msg, details...)
 }
 
-func UnauthenticatedWithDetails(msg string, details ...protoadapt.MessageV1) error {
+func UnauthenticatedWithDetails(
+	msg string,
+	details ...protoadapt.MessageV1,
+) error {
 	return NewWithDetails(codes.Unauthenticated, msg, details...)
 }
 
@@ -181,14 +204,19 @@ func (b *builder) WithErrorInfo(
 
 func (b *builder) WithBadRequestFieldViolation(field, desc string) *builder {
 	br := b.badRequest()
-	br.FieldViolations = append(br.FieldViolations, &epb.BadRequest_FieldViolation{
-		Field:       field,
-		Description: desc,
-	})
+	br.FieldViolations = append(
+		br.FieldViolations,
+		&epb.BadRequest_FieldViolation{
+			Field:       field,
+			Description: desc,
+		},
+	)
 	return b
 }
 
-func (b *builder) WithPreconditionViolation(typ, subject, desc string) *builder {
+func (b *builder) WithPreconditionViolation(
+	typ, subject, desc string,
+) *builder {
 	pf := b.preconditionFailure()
 	pf.Violations = append(pf.Violations, &epb.PreconditionFailure_Violation{
 		Type:        typ,

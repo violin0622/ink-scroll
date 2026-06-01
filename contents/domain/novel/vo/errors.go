@@ -29,7 +29,11 @@ type VolumeTitleAlreadyExistError struct {
 }
 
 func (e VolumeTitleAlreadyExistError) Error() string {
-	return fmt.Sprintf(`title '%s' already been used by volume %s`, e.Title, e.ID)
+	return fmt.Sprintf(
+		`title '%s' already been used by volume %s`,
+		e.Title,
+		e.ID,
+	)
 }
 
 func invalidConvertionError(a, b any) error {

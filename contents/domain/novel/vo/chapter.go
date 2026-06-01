@@ -9,12 +9,11 @@ var SentinelChapter = Chapter{}
 type (
 	ID      = ulid.ULID
 	Chapter struct {
-		ID ID
-		// Sequence int
-		VolumeID ID
+		ID, VolumeID ID
 
-		Title string
-		// UpdatedAt  time.Time
+		// title are used for test/debug purpose(easy to read), do not use in
+		// bussiness logic.
+		title string
 	}
 )
 
@@ -26,7 +25,3 @@ func (c Chapter) ChangeVolume(vid ID) Chapter {
 	c.VolumeID = vid
 	return c
 }
-
-// func ChapterCmp(a, b Chapter) int {
-// 	return cmp.Compare(a.Sequence, b.Sequence)
-// }
