@@ -15,7 +15,7 @@ import (
 // 不存在的字母视为卷存在而章节不存在。
 func setupToc(pattern string) (t TOC) {
 	volTitle, chpTitle := 'A', 'a'
-	t.volumes = []Volume{{ID: ulid.Make(), Title: `A`}}
+	t.volumes = []Volume{{ID: ulid.Make(), Title: `A`, Kind: VolumeKindMain}}
 
 	for i := 0; i < len(pattern); {
 		if pattern[i] != byte(volTitle) {
@@ -354,7 +354,7 @@ func chp5() (id1, id2, id3, id4, id5 ulid.ULID, chp []Chapter) {
 	return id1, id2, id3, id4, id5, chp
 }
 
-func TestChapterSequenceInVolume(t *testing.T) {
+func TestTOC_ChapterSequenceInVolume(t *testing.T) {
 	id1, id2, id3, _, _, chp := chp5()
 	vid1, vid2 := ulid.Make(), ulid.Make()
 	chp[0].VolumeID = vid1
@@ -597,16 +597,86 @@ func TestTOC_chapterRangeByVolumeIndex(t *testing.T) {
 	}
 }
 
-func helper(pattern string, chp []Chapter, vids ...ID) {
-	pattern = strings.ReplaceAll(pattern, `_`, ``)
-	for _, n := range pattern {
-		switch n {
-		case 'x':
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		}
+func TestTOC_ReorderChapter(t *testing.T) {
+	testcases := []struct {
+		xtest.Base
+		toc TOC
+		// ci is absolute sequence, seq is target relative sequence.
+		ci, seq int
+		expect  string
+	}{{
+		Base:   xtest.New(`4U3G24`, `noop`),
+		toc:    setupToc(`A`),
+		ci:     0,
+		seq:    0,
+		expect: `a`,
+	}, {
+		Base:   xtest.New(`BJC8GS`, `noop exceed`),
+		toc:    setupToc(`ABC`),
+		ci:     1,
+		seq:    1,
+		expect: `abc`,
+	}, {
+		Base:   xtest.New(`M23HZ8`, `noop exceed`),
+		toc:    setupToc(`ABC`),
+		ci:     2,
+		seq:    2,
+		expect: `abc`,
+	}, {
+		Base:   xtest.New(`XM2Y3P`, `left to right exceed`),
+		toc:    setupToc(`ABC`),
+		ci:     2,
+		seq:    3,
+		expect: `abc`,
+	}, {
+		Base:   xtest.New(`7793DP`, `left to right`),
+		toc:    setupToc(`AAAABC`),
+		ci:     0,
+		seq:    2,
+		expect: `bcadef`,
+	}, {
+		Base:   xtest.New(`ZU93DP`, `left to right`),
+		toc:    setupToc(`AAAABC`),
+		ci:     0,
+		seq:    3,
+		expect: `bcdaef`,
+	}, {
+		Base:   xtest.New(`ZUE8DP`, `left to right exceed`),
+		toc:    setupToc(`AAAABC`),
+		ci:     0,
+		seq:    4,
+		expect: `bcdaef`,
+	}, {
+		Base:   xtest.New(`EYX2Y3`, `left to right exceed`),
+		toc:    setupToc(`AAAABC`),
+		ci:     2,
+		seq:    4,
+		expect: `abdcef`,
+	}, {
+		Base:   xtest.New(`EYEK83`, `right to left noop`),
+		toc:    setupToc(`BC`),
+		ci:     1,
+		seq:    2,
+		expect: `ab`,
+	}, {
+		Base:   xtest.New(`MQ2EC2`, `right to left`),
+		toc:    setupToc(`BCCCCD`),
+		ci:     4,
+		seq:    2,
+		expect: `abcedf`,
+	}}
+
+	for _, tc := range testcases {
+		t.Run(tc.String(), func(t *testing.T) {
+			cid := tc.toc.chapters[tc.ci].ID
+			toc, err := tc.toc.ReorderChapter(cid, tc.seq)
+			if err != nil {
+				t.Errorf(`unexpected err: %s`, err)
+			}
+
+			if toc.chpTitles() != tc.expect {
+				t.Errorf(`expected: %s, actual: %s`, tc.expect, toc.chpTitles())
+			}
+		})
 	}
 }

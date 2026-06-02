@@ -22,15 +22,15 @@ type VolumeKind int
 
 const (
 	_ VolumeKind = iota
-	Main
-	Extra
-	Related
+	VolumeKindMain
+	VolumeKindExtra
+	VolumeKindRelated
 )
 
 var volumeKindStr = map[VolumeKind]string{
-	Main:    `Main`,
-	Extra:   `Extra`,
-	Related: `Related`,
+	VolumeKindMain:    `Main`,
+	VolumeKindExtra:   `Extra`,
+	VolumeKindRelated: `Related`,
 }
 
 func (k VolumeKind) String() string { return volumeKindStr[k] }
