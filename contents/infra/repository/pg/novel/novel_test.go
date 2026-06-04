@@ -42,11 +42,9 @@ var _ = Describe(`NoveRepo`, func() {
 		tags     = []string{`DnD`, `Sole Famale`, `Legacy`}
 		status   = vo.Serial
 		chapters = []vo.Chapter{{
-			ID:       ulid.Make(),
-			Sequence: 1,
+			ID: ulid.Make(),
 		}, {
-			ID:       ulid.Make(),
-			Sequence: 2,
+			ID: ulid.Make(),
 		}}
 		wordCount = 30
 		createdAt = now

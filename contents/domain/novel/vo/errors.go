@@ -50,3 +50,5 @@ type InvariantBrokenError struct {
 func (e InvariantBrokenError) Error() string {
 	return fmt.Sprintf(`invariance[%s] broken: %s`, e.Num, e.Msg)
 }
+
+const unknownStr = `<unknown>`

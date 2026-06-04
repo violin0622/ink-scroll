@@ -1,6 +1,7 @@
 package vo
 
 import (
+	"cmp"
 	"fmt"
 
 	"google.golang.org/grpc/codes"
@@ -24,13 +25,7 @@ var statusString = map[Status]string{
 	Completed: `Completed`,
 }
 
-func (s Status) String() string {
-	str, ok := statusString[s]
-	if !ok {
-		return `<unknown>`
-	}
-	return str
-}
+func (s Status) String() string { return cmp.Or(statusString[s], unknownStr) }
 
 func (s Status) ChapterPublished() (Status, error) {
 	switch s {

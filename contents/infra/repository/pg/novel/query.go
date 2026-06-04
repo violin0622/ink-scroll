@@ -68,6 +68,11 @@ func (p novelRepo) restore(model Novel) (domain novel.Novel, err error) {
 		return domain, fmt.Errorf(`restore: %w`, err)
 	}
 
+	volumes, err := convert.SliceIntoDomain[Volume, vo.Volume](model.Volumes)
+	if err != nil {
+		return domain, fmt.Errorf(`restore: %w`, err)
+	}
+
 	domain, err = p.fact.Restore(
 		model.ID.Into(),
 		model.AuthorID.Into(),
@@ -77,6 +82,7 @@ func (p novelRepo) restore(model Novel) (domain novel.Novel, err error) {
 		model.Tags,
 		model.Status,
 		url.URL{},
+		volumes,
 		chapters,
 		model.WordCount,
 		model.UpdatedTs.Into(),

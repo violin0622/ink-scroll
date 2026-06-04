@@ -12,42 +12,37 @@ import (
 
 var _ = fmt.Println
 
+// 公有方法设计原则：
+// 简单、正交。
 type TOC struct {
 	// chapters 按 VolumeID 排列，顺序与 volumes 顺序相同。
 	chapters []Chapter
 	volumes  []Volume
 }
 
-func NewTOC(c ...Chapter) (TOC, error) {
-	toc := TOC{
-		chapters: append([]Chapter{SentinelChapter}, c...),
-		volumes: []Volume{{
-			ID:          ID{},
-			Title:       "",
-			Description: "",
-			Kind:        0,
-		}},
-	}
-	return toc, toc.checkInvariants()
+func NewTOC() (TOC, error) {
+	toc := TOC{volumes: []Volume{newVolume()}}
+	return toc.maybeOk()
 }
 
-func (t TOC) AppendChapter(vid ID) (TOC, Chapter, error) {
-	i := t.volumeByID(vid)
-	if i < 0 {
-		return TOC{}, Chapter{}, ErrVolumeNotFound
+func RestoreTOC(v []Volume, c []Chapter) (TOC, error) {
+	toc := TOC{chapters: c, volumes: v}
+	return toc.maybeOk()
+}
+
+func (t TOC) AppendChapter(c Chapter) (TOC, error) {
+	vi := t.volumeByID(c.VolumeID)
+	if vi < 0 {
+		return TOC{}, ErrVolumeNotFound
 	}
 
-	_, r := t.chapterRangeByVolumeIndex(i)
-	c := Chapter{ID: ulid.Make(), VolumeID: vid}
+	_, r := t.chapterRangeByVolumeIndex(vi)
 
 	t.chapters = append(t.chapters, Chapter{})
 	rcopy(t.chapters[r:], t.chapters)
 	t.chapters[r] = c
 
-	if err := t.checkInvariants(); err != nil {
-		return TOC{}, Chapter{}, err
-	}
-	return t, c, nil
+	return t.maybeOk()
 }
 
 func (t TOC) DropChapter(cid ID) (TOC, error) {
@@ -96,10 +91,39 @@ func (t TOC) ReorderChapter(cid ID, seq int) (TOC, error) {
 	return t.maybeOk()
 }
 
-// MoveToVolume move chapter to target volume, this may cause sequence change.
-// chapter will be last in the target volume.
+// MoveToVolume move chapter to target volume vid, this may cause sequence
+// change.
+// chapter will be set in last place in the target volume.
 func (t TOC) MoveToVolume(cid, vid ID) (TOC, error) {
-	panic(`unimplement`)
+	ci := t.chapterByID(cid)
+	if ci < 0 {
+		return t.err(ErrChapterNotFound)
+	}
+
+	vi := t.volumeByID(vid)
+	if vi < 0 {
+		return t.err(ErrVolumeNotFound)
+	}
+
+	l, r := t.chapterRangeByVolumeIndex(vi)
+
+	// already in vid Volume, noop
+	if ci >= l && ci < r {
+		return t, nil
+	}
+
+	switch {
+	case ci < l: // move left to right.
+		c := t.chapters[ci].ChangeVolume(vid)
+		copy(t.chapters[ci:r], t.chapters[ci+1:r])
+		t.chapters[r-1] = c
+	case ci >= r: // move right to left.
+		c := t.chapters[ci].ChangeVolume(vid)
+		rcopy(t.chapters[r:ci+1], t.chapters[r-1:ci])
+		t.chapters[max(l, r-1)] = c
+	}
+
+	return t.maybeOk()
 }
 
 func (t TOC) RenameVolume(vid ID, title string) (TOC, error) {
@@ -323,6 +347,12 @@ func (t TOC) LatestChapter() (c Chapter, err error) {
 	}
 
 	return t.chapters[len(t.chapters)-1], nil
+}
+
+func (t TOC) Volumes() (v []Volume) {
+	v = make([]Volume, len(t.volumes))
+	copy(v, t.volumes)
+	return
 }
 
 func (t TOC) GetChapters() (c []Chapter) {

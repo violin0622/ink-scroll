@@ -1,11 +1,27 @@
 package vo
 
+import (
+	"cmp"
+	"fmt"
+
+	"github.com/oklog/ulid/v2"
+)
+
 type Volume struct {
 	ID ID
 
 	Title       string
 	Description string
 	Kind        VolumeKind
+}
+
+func newVolume() Volume {
+	return Volume{
+		ID:          ulid.Make(),
+		Title:       `Main`,
+		Description: ``,
+		Kind:        VolumeKindMain,
+	}
 }
 
 func (v Volume) Rename(t string) Volume {
@@ -20,6 +36,8 @@ func (v Volume) UpdateDescription(d string) Volume {
 
 type VolumeKind int
 
+var _ fmt.Stringer = (VolumeKind)(0)
+
 const (
 	_ VolumeKind = iota
 	VolumeKindMain
@@ -33,4 +51,6 @@ var volumeKindStr = map[VolumeKind]string{
 	VolumeKindRelated: `Related`,
 }
 
-func (k VolumeKind) String() string { return volumeKindStr[k] }
+func (k VolumeKind) String() string {
+	return cmp.Or(volumeKindStr[k], unknownStr)
+}

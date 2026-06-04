@@ -109,6 +109,7 @@ func (f Factory) Restore(
 	tags []string,
 	status int,
 	cover url.URL,
+	volumes []vo.Volume,
 	chapters []vo.Chapter,
 	wordCount int,
 	updatedAt, createdAt time.Time) (
@@ -125,7 +126,7 @@ func (f Factory) Restore(
 	n.updatedAt = updatedAt
 	n.wordCount = wordCount
 
-	if n.toc, err = vo.NewTOC(chapters...); err != nil {
+	if n.toc, err = vo.RestoreTOC(volumes, chapters); err != nil {
 		return n, err
 	}
 

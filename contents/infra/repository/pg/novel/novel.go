@@ -1,14 +1,11 @@
 package novel
 
 import (
-	"context"
-
 	"github.com/oklog/ulid/v2"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	"play-ddd/contents/domain/novel"
 	"play-ddd/contents/domain/novel/vo"
+	"play-ddd/contents/infra/repository/pg/convert"
 	dt "play-ddd/contents/infra/repository/pg/datatypes"
 	"play-ddd/contents/infra/repository/pg/datatypes/ts"
 	dtulid "play-ddd/contents/infra/repository/pg/datatypes/ulid"
@@ -18,57 +15,6 @@ import (
 
 type ID = dtulid.ULID
 
-type novelRepo struct {
-	db   *gorm.DB
-	fact novel.Factory
-}
-
-// Get implements app.NovelRepo.
-func (p novelRepo) Get(
-	ctx context.Context,
-	id novel.ID,
-) (novel novel.Novel, err error) {
-	var n Novel
-	err = p.db.
-		WithContext(ctx).
-		Where(nonDeleted).
-		Take(&n, dtulid.ULID(id)).
-		Error
-	if err != nil {
-		return novel, err
-	}
-
-	return p.restore(n)
-}
-
-// Save implements app.NovelRepo.
-func (nr novelRepo) Save(ctx context.Context, n novel.Novel) error {
-	novel := fromDomain[novel.Novel, Novel](n)
-	return nr.db.
-		WithContext(ctx).
-		Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: `id`}},
-			UpdateAll: true,
-			Where: clause.Where{
-				Exprs: []clause.Expression{
-					gorm.Expr(`"novels"."updated_ts"<="excluded"."updated_ts"`),
-					nonDeleted,
-				},
-			},
-		}).
-		Create(&novel).
-		Error
-}
-
-var nonDeleted = gorm.Expr(`"novels"."deleted_ts" = 0 `)
-
-func New(
-	db *gorm.DB,
-	fact novel.Factory,
-) novelRepo {
-	return novelRepo{db: db, fact: fact}
-}
-
 type Novel struct {
 	dt.Model[ID]
 	AuthorID    ID
@@ -77,11 +23,12 @@ type Novel struct {
 	Description string
 	Tags        []string  `gorm:"serializer:json"`
 	TOC         []Chapter `gorm:"serializer:json"`
+	Volumes     []Volume  `gorm:"serializer:json"`
 	Status      int
 	WordCount   int
 }
 
-func (n *Novel) fromDomain(novel novel.Novel) {
+func (n *Novel) FromDomain(novel novel.Novel) {
 	tags := make([]string, len(novel.Tags()))
 	for i, t := range novel.Tags() {
 		tags[i] = string(t)
@@ -96,22 +43,21 @@ func (n *Novel) fromDomain(novel novel.Novel) {
 	n.Category = string(novel.Category())
 	n.Status = int(novel.Status())
 	n.Tags = tags
-	n.TOC = fromSlice[vo.Chapter, Chapter](novel.Chapters())
+	n.TOC = convert.SliceFromDomain[vo.Chapter, Chapter](novel.Chapters())
+	n.Volumes = convert.SliceFromDomain[vo.Volume, Volume](novel.Volumes())
 	n.WordCount = novel.WordCount()
 }
 
 type Chapter struct {
-	ID       string
-	Sequence int
+	ID, VolumeID string
 }
 
-func (c *Chapter) fromDomain(vc vo.Chapter) {
+func (c *Chapter) FromDomain(vc vo.Chapter) {
 	if c == nil {
 		return
 	}
 
 	c.ID = vc.ID.String()
-	c.Sequence = vc.Sequence
 }
 
 func (c *Chapter) IntoDomain() (vc vo.Chapter, err error) {
@@ -119,34 +65,47 @@ func (c *Chapter) IntoDomain() (vc vo.Chapter, err error) {
 		return vc, nil
 	}
 
-	if c.ID != "" {
-		vc.ID, err = ulid.Parse(c.ID)
-		if err != nil {
-			return vc, err
-		}
+	if vc.ID, err = ulid.Parse(c.ID); err != nil {
+		return vc, err
 	}
-	vc.Sequence = c.Sequence
+
+	if vc.VolumeID, err = ulid.Parse(c.VolumeID); err != nil {
+		return vc, err
+	}
+
 	return vc, nil
 }
 
-func fromDomain[A, M any, P fromPtr[A, M]](a A) (b M) {
-	P(&b).fromDomain(a)
-	return b
+type Volume struct {
+	ID    string
+	Title string
+	Desc  string
+	Kind  int
 }
 
-// fromPtr 约束类型必须是指向 B 的指针，且该指针类型实现了 fromDomain(A) 方法
-type fromPtr[A any, M any] interface {
-	fromDomain(A)
-	*M
+func (v *Volume) FromDomain(vv vo.Volume) {
+	if v == nil {
+		return
+	}
+
+	v.Kind = int(vv.Kind)
+	v.Title = vv.Title
+	v.Desc = vv.Description
+	v.ID = vv.ID.String()
 }
 
-func fromSlice[A, M any, Mp fromPtr[A, M]](as []A) (bs []M) {
-	if len(as) == 0 {
-		return make([]M, 0)
+func (v *Volume) IntoDomain() (vv vo.Volume, err error) {
+	if v == nil {
+		return
 	}
-	bs = make([]M, len(as))
-	for i := range as {
-		Mp(&bs[i]).fromDomain(as[i])
+
+	if vv.ID, err = ulid.Parse(v.ID); err != nil {
+		return
 	}
-	return bs
+
+	vv.Title = v.Title
+	vv.Kind = vo.VolumeKind(v.Kind)
+	vv.Description = v.Desc
+
+	return
 }

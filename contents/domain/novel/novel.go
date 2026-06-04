@@ -47,6 +47,7 @@ func (n Novel) Status() vo.Status               { return n.s }
 func (n Novel) UpdatedAt() time.Time            { return n.updatedAt }
 func (n Novel) CreatedAt() time.Time            { return n.createdAt }
 func (n Novel) Chapters() []vo.Chapter          { return n.toc.GetChapters() }
+func (n Novel) Volumes() []vo.Volume            { return n.toc.Volumes() }
 func (n Novel) ChapterCount() int               { return n.toc.ChapterCount() }
 func (n Novel) ReleaseStatus() vo.ReleaseStatus { return n.releaseStatus }
 
@@ -102,8 +103,6 @@ func (n *Novel) UpdateDescription(ctx context.Context, d string) error {
 func (n *Novel) UploadNewChapter(
 	ctx context.Context, vid, id ID, wordcount int, uploadAt time.Time,
 ) error {
-	// c := n.toc.NextChapter()
-	// c.ID = id
 	c := vo.Chapter{ID: id, VolumeID: vid}
 	e := ev.NewNewChapterUploaded(n.id, c, wordcount, uploadAt)
 	if err := n.imposeNewChapterUploaded(e); err != nil {
@@ -368,13 +367,12 @@ func (n *Novel) imposeNolongerUpdate(ev.NolongerUpdate) error {
 	return nil
 }
 
-func (n *Novel) imposeNewChapterUploaded(e ev.NewChapterUploaded) error {
+func (n *Novel) imposeNewChapterUploaded(e ev.NewChapterUploaded) (err error) {
 	if n == nil {
 		return ErrNilPointer
 	}
 
-	var err error
-	if n.toc, err = n.toc.Append(e.Chapter); err != nil {
+	if n.toc, err = n.toc.AppendChapter(e.Chapter); err != nil {
 		return err
 	}
 
