@@ -29,7 +29,8 @@ var _ = Describe(`NovelReplayEvents`, func() {
 		n            novel.Novel
 		err          error
 		id, autherID = ulid.Make(), ulid.Make()
-		fac          = novel.NewFactory(logr.Discard())
+		cover, _     = vo.NewCover(`https://example.com/cover.png`)
+		fac          = novel.NewFactory(logr.Discard()).WithEventRepo(nopEventRepo{})
 	)
 
 	// events
@@ -43,8 +44,11 @@ var _ = Describe(`NovelReplayEvents`, func() {
 			vo.Category(`玄幻`),
 			[]vo.Tag{vo.Tag(`修仙`), vo.Tag(`穿越`)})
 
-		descUpdated = events.NewDescUpdated(id, vo.Description(`更新后的描述`))
-		tagsUpdated = events.NewTagsUpdated(id,
+		reviewSubmitted  = events.NewPublishReviewSubmitted(id)
+		reviewWithdrawed = events.NewWithdrawed(id)
+		coverUploaded    = events.NewCoverUploaded(id, cover)
+		descUpdated      = events.NewDescUpdated(id, vo.Description(`更新后的描述`))
+		tagsUpdated      = events.NewTagsUpdated(id,
 			[]vo.Tag{vo.Tag(`修仙`), vo.Tag(`穿越`)},
 			[]vo.Tag{vo.Tag(`修仙`), vo.Tag(`穿越`), vo.Tag(`系统`)})
 		chapterUploaded1 = events.NewNewChapterUploaded(id, vo.Chapter{
@@ -56,11 +60,16 @@ var _ = Describe(`NovelReplayEvents`, func() {
 		chapterRevised = events.NewChapterRevised(id, vo.Chapter{
 			ID: ulid.Make(),
 		})
+		novelBanned    = events.NewNovelBanned(id)
+		novelUnbanned  = events.NewNovelUnbanned(id)
 		nolongerUpdate = events.NewNolongerUpdate(id)
 		completed      = events.NewCompleted(id)
 	)
 	eventsHist := []events.Event{
 		novelCreated,
+		reviewSubmitted,
+		reviewWithdrawed,
+		coverUploaded,
 		descUpdated,
 		tagsUpdated,
 		chapterUploaded1,
@@ -86,8 +95,13 @@ var _ = Describe(`NovelReplayEvents`, func() {
 				err = n.ReplayEvents(e)
 				Ω(err).Should(MatchError(common.ErrInitialEvent))
 			},
+			Entry(`PublishReviewSubmitted`, reviewSubmitted),
+			Entry(`PublishReviewWithdrawed`, reviewWithdrawed),
 			Entry(`DescUpdated`, descUpdated),
 			Entry(`TagsUpdated`, tagsUpdated),
+			Entry(`CoverUploaded`, coverUploaded),
+			Entry(`NovelBanned`, novelBanned),
+			Entry(`NovelUnbanned`, novelUnbanned),
 			Entry(`NewChapterUploaded`, chapterUploaded2),
 			Entry(`ChapterRevised`, chapterRevised),
 			Entry(`Completed`, completed),
@@ -107,7 +121,7 @@ var _ = Describe(`NovelReplayEvents`, func() {
 			Ω(n.Title()).Should(Equal(vo.Title(`测试小说`)))
 			Ω(n.Description()).Should(Equal(vo.Description(`更新后的描述`)))
 			Ω(n.Category()).Should(Equal(vo.Category(`玄幻`)))
-			Ω(n.Cover()).Should(Equal(vo.NoCover))
+			Ω(n.Cover()).Should(Equal(cover))
 		})
 
 		It(`should maintain correct status and tags`, func() {
@@ -132,6 +146,29 @@ var _ = Describe(`NovelReplayEvents`, func() {
 			Ω(n.CreatedAt()).ShouldNot(BeZero())
 			Ω(n.UpdatedAt()).ShouldNot(BeZero())
 		})
+	})
+	It(`uploads cover and appends an event`, func() {
+		err = n.ReplayEvents(novelCreated)
+		Ω(err).ShouldNot(HaveOccurred())
+
+		uploadedCover, err := vo.NewCover(`https://example.com/uploaded-cover.png`)
+		Ω(err).ShouldNot(HaveOccurred())
+
+		err = n.UploadCover(context.Background(), uploadedCover)
+		Ω(err).ShouldNot(HaveOccurred())
+		Ω(n.Cover()).Should(Equal(uploadedCover))
+	})
+	It(`submits and withdraws publish review`, func() {
+		err = n.ReplayEvents(novelCreated)
+		Ω(err).ShouldNot(HaveOccurred())
+
+		err = n.ApplyPublish(context.Background())
+		Ω(err).ShouldNot(HaveOccurred())
+		Ω(n.ReleaseStatus()).Should(Equal(vo.Reviewing))
+
+		err = n.WithdrawRelease(context.Background())
+		Ω(err).ShouldNot(HaveOccurred())
+		Ω(n.ReleaseStatus()).Should(Equal(vo.Draft))
 	})
 })
 

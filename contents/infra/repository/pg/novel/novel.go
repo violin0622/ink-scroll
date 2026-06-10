@@ -96,16 +96,16 @@ func (v *Volume) FromDomain(vv vo.Volume) {
 
 func (v *Volume) IntoDomain() (vv vo.Volume, err error) {
 	if v == nil {
-		return
+		return vv, err
 	}
 
 	if vv.ID, err = ulid.Parse(v.ID); err != nil {
-		return
+		return vv, err
 	}
 
 	vv.Title = v.Title
 	vv.Kind = vo.VolumeKind(v.Kind)
 	vv.Description = v.Desc
 
-	return
+	return vv, err
 }

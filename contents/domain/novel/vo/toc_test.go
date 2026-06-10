@@ -708,92 +708,106 @@ func TestTOC_MoveToVolume(t *testing.T) {
 		ci      int    // chapter index to move
 		target  int    // target volume index
 		expect  string // expected chpTitles
-	}{{
-		// Noop — chapter already in target volume
-		Base:    xtest.New(`K43P2N`, `noop single vol`),
-		pattern: `A`,
-		ci:      0,
-		target:  0,
-		expect:  `a`,
-	}, {
-		Base:    xtest.New(`K43Q2G`, `noop already in target first`),
-		pattern: `AABBC`,
-		ci:      0,
-		target:  0,
-		expect:  `abcde`,
-	}, {
-		Base:    xtest.New(`K43R7H`, `noop already in target last`),
-		pattern: `AABBC`,
-		ci:      1,
-		target:  0,
-		expect:  `abcde`,
-	}, {
-		Base:    xtest.New(`L1`, `adjacent single-ch vol`),
-		pattern: `ABCD`,
-		ci:      0,
-		target:  1,
-		expect:  `bacd`,
-	}, {
-		Base:    xtest.New(`L2`, `non-adjacent`),
-		pattern: `ABCDE`,
-		ci:      0,
-		target:  2,
-		expect:  `bcade`,
-	}, {
-		Base:    xtest.New(`L3`, `multi-ch source first ch`),
-		pattern: `AABC`,
-		ci:      0,
-		target:  1,
-		expect:  `bcad`,
-	}, {
-		Base:    xtest.New(`L4`, `multi-ch source non-first`),
-		pattern: `AABC`,
-		ci:      1,
-		target:  1,
-		expect:  `acbd`,
-	}, {
-		Base:    xtest.New(`L5`, `multi-ch target`),
-		pattern: `ABB`,
-		ci:      0,
-		target:  1,
-		expect:  `bca`,
-	}, {
-		Base:    xtest.New(`L6`, `source becomes empty`),
-		pattern: `ABC`,
-		ci:      0,
-		target:  2,
-		expect:  `bca`,
-	}, {
-		Base:    xtest.New(`R1`, `adjacent single-ch vol`),
-		pattern: `ABCD`,
-		ci:      2,
-		target:  1,
-		expect:  `acbd`,
-	}, {
-		Base:    xtest.New(`R2`, `non-adjacent`),
-		pattern: `ABCDE`,
-		ci:      4,
-		target:  1,
-		expect:  `aebcd`,
-	}, {
-		Base:    xtest.New(`R3`, `multi-ch source move last`),
-		pattern: `AABBC`,
-		ci:      3,
-		target:  0,
-		expect:  `adbce`,
-	}, {
-		Base:    xtest.New(`R4`, `end to front`),
-		pattern: `ABCDE`,
-		ci:      4,
-		target:  0,
-		expect:  `eabcd`,
-	}, {
-		Base:    xtest.New(`B1`, `ci == l-1 left to right`),
-		pattern: `ABCD`,
-		ci:      1,
-		target:  2,
-		expect:  `acbd`,
-	},
+	}{
+		{
+			// Noop — chapter already in target volume
+			Base:    xtest.New(`K43P2N`, `noop single vol`),
+			pattern: `A`,
+			ci:      0,
+			target:  0,
+			expect:  `a`,
+		},
+		{
+			Base:    xtest.New(`K43Q2G`, `noop already in target first`),
+			pattern: `AABBC`,
+			ci:      0,
+			target:  0,
+			expect:  `abcde`,
+		},
+		{
+			Base:    xtest.New(`K43R7H`, `noop already in target last`),
+			pattern: `AABBC`,
+			ci:      1,
+			target:  0,
+			expect:  `abcde`,
+		},
+		{
+			Base:    xtest.New(`L1`, `adjacent single-ch vol`),
+			pattern: `ABCD`,
+			ci:      0,
+			target:  1,
+			expect:  `bacd`,
+		},
+		{
+			Base:    xtest.New(`L2`, `non-adjacent`),
+			pattern: `ABCDE`,
+			ci:      0,
+			target:  2,
+			expect:  `bcade`,
+		},
+		{
+			Base:    xtest.New(`L3`, `multi-ch source first ch`),
+			pattern: `AABC`,
+			ci:      0,
+			target:  1,
+			expect:  `bcad`,
+		},
+		{
+			Base:    xtest.New(`L4`, `multi-ch source non-first`),
+			pattern: `AABC`,
+			ci:      1,
+			target:  1,
+			expect:  `acbd`,
+		},
+		{
+			Base:    xtest.New(`L5`, `multi-ch target`),
+			pattern: `ABB`,
+			ci:      0,
+			target:  1,
+			expect:  `bca`,
+		},
+		{
+			Base:    xtest.New(`L6`, `source becomes empty`),
+			pattern: `ABC`,
+			ci:      0,
+			target:  2,
+			expect:  `bca`,
+		},
+		{
+			Base:    xtest.New(`R1`, `adjacent single-ch vol`),
+			pattern: `ABCD`,
+			ci:      2,
+			target:  1,
+			expect:  `acbd`,
+		},
+		{
+			Base:    xtest.New(`R2`, `non-adjacent`),
+			pattern: `ABCDE`,
+			ci:      4,
+			target:  1,
+			expect:  `aebcd`,
+		},
+		{
+			Base:    xtest.New(`R3`, `multi-ch source move last`),
+			pattern: `AABBC`,
+			ci:      3,
+			target:  0,
+			expect:  `adbce`,
+		},
+		{
+			Base:    xtest.New(`R4`, `end to front`),
+			pattern: `ABCDE`,
+			ci:      4,
+			target:  0,
+			expect:  `eabcd`,
+		},
+		{
+			Base:    xtest.New(`B1`, `ci == l-1 left to right`),
+			pattern: `ABCD`,
+			ci:      1,
+			target:  2,
+			expect:  `acbd`,
+		},
 		// Empty target volume
 		{
 			Base:    xtest.New(`E1`, `ci < l to empty vol`),
@@ -801,13 +815,15 @@ func TestTOC_MoveToVolume(t *testing.T) {
 			ci:      0,
 			target:  1,
 			expect:  `bac`,
-		}, {
+		},
+		{
 			Base:    xtest.New(`E2`, `ci >= r to empty vol`),
 			pattern: `AAC`,
 			ci:      2,
 			target:  1,
 			expect:  `abc`,
-		}}
+		},
+	}
 
 	for _, tc := range tests {
 		t.Run(tc.String(), func(t *testing.T) {

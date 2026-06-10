@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/oklog/ulid/v2"
 	"github.com/samber/lo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -107,7 +108,7 @@ func (s *CommandHandler) UploadChapter(
 	id chapter.ID, err error,
 ) {
 	err = s.repo.Tx(func(tx Repo) error {
-		novel, err := tx.Novel().Get(ctx, cmd.NovelID)
+		n, err := tx.Novel().Get(ctx, cmd.NovelID)
 		if err != nil {
 			return err
 		}
@@ -116,7 +117,7 @@ func (s *CommandHandler) UploadChapter(
 			WithEventRepo(tx.Event()).
 			UploadChapter(
 				ctx,
-				novel.ChapterCount()+1,
+				n.ChapterCount()+1,
 				cmd.Title,
 				cmd.MainContent,
 				cmd.ExtraContent)
@@ -124,7 +125,12 @@ func (s *CommandHandler) UploadChapter(
 			return err
 		}
 
-		err = novel.UploadNewChapter(ctx, c.ID(), c.WordCount(), time.Now())
+		err = n.UploadChapter(ctx, novel.UpdateArg{
+			ChapterID:  id,
+			VolumeID:   ulid.Zero, //TODO
+			WordCount:  10,
+			ReleasedAt: time.Time{},
+		})
 		if err != nil {
 			return err
 		}
@@ -134,7 +140,7 @@ func (s *CommandHandler) UploadChapter(
 			return err
 		}
 
-		err = tx.Novel().Save(ctx, novel)
+		err = tx.Novel().Save(ctx, n)
 		if err != nil {
 			return err
 		}

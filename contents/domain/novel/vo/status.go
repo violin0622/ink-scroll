@@ -53,17 +53,26 @@ func (s Status) MarkDesolated() (Status, error) {
 	return Desolated, nil
 }
 
-type ReleaseStatus string
+type ReleaseStatus int
 
 const (
-	_         ReleaseStatus = ``
-	Draft     ReleaseStatus = `Draft`
-	Reviewing ReleaseStatus = `Reviewing`
-	Released  ReleaseStatus = `Released`
-	Banned    ReleaseStatus = `Banned`
+	_ ReleaseStatus = iota
+	Draft
+	Reviewing
+	Published
+	Banned
 )
 
-func (s ReleaseStatus) NovelReviewSubmitted() (ReleaseStatus, error) {
+var relStatusString = map[ReleaseStatus]string{
+	Draft:     `Draft`,
+	Reviewing: `Reviewing`,
+	Published: `Published`,
+	Banned:    `Banned`,
+}
+
+func (s ReleaseStatus) String() string { return cmp.Or(relStatusString[s], unknownStr) }
+
+func (s ReleaseStatus) PublishReviewSubmitted() (ReleaseStatus, error) {
 	if s == Draft {
 		return Reviewing, nil
 	}
@@ -71,14 +80,14 @@ func (s ReleaseStatus) NovelReviewSubmitted() (ReleaseStatus, error) {
 	return s, invalidConvertionError(s, Reviewing)
 }
 
-func (s ReleaseStatus) NovelReviewApproved() (ReleaseStatus, error) {
+func (s ReleaseStatus) PublishReviewApproved() (ReleaseStatus, error) {
 	if s == Reviewing {
-		return Released, nil
+		return Published, nil
 	}
-	return s, invalidConvertionError(s, Released)
+	return s, invalidConvertionError(s, Published)
 }
 
-func (s ReleaseStatus) NovelReviewRejected() (ReleaseStatus, error) {
+func (s ReleaseStatus) PublishReviewRejected() (ReleaseStatus, error) {
 	if s == Reviewing {
 		return Draft, nil
 	}
@@ -86,7 +95,7 @@ func (s ReleaseStatus) NovelReviewRejected() (ReleaseStatus, error) {
 }
 
 func (s ReleaseStatus) Banned() (ReleaseStatus, error) {
-	if s == Released {
+	if s == Published {
 		return Banned, nil
 	}
 	return s, invalidConvertionError(s, Banned)
@@ -94,13 +103,7 @@ func (s ReleaseStatus) Banned() (ReleaseStatus, error) {
 
 func (s ReleaseStatus) AppealApproved() (ReleaseStatus, error) {
 	if s == Banned {
-		return Released, nil
+		return Published, nil
 	}
-	return s, invalidConvertionError(s, Released)
+	return s, invalidConvertionError(s, Published)
 }
-
-// var (
-// 	ErrMutateCompletedNovel = status.New(
-// 		codes.FailedPrecondition,
-// 		`mutate a completed novel is not allowed`).Err()
-// )

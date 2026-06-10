@@ -2,12 +2,13 @@ package novel
 
 import (
 	"context"
-	"play-ddd/contents/domain/novel"
-	"play-ddd/contents/infra/repository/pg/convert"
-	dtulid "play-ddd/contents/infra/repository/pg/datatypes/ulid"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+
+	"play-ddd/contents/domain/novel"
+	"play-ddd/contents/infra/repository/pg/convert"
+	dtulid "play-ddd/contents/infra/repository/pg/datatypes/ulid"
 )
 
 type novelRepo struct {

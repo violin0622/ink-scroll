@@ -43,14 +43,16 @@ func (t ChapterRevised) Payload() ([]byte, error) { return json.Marshal(t) }
 var _ Event = ChapterUploaded{}
 
 type ChapterUploaded struct {
-	id           ID
-	aid          ID
-	at           time.Time
-	Seq          int
-	Title        string
-	MainContent  string
-	ExtraContent string
-	WordCount    int
+	id  ID
+	aid ID
+	at  time.Time
+
+	// Seq               int
+	Title             string
+	MainContent       string
+	ExtraContent      string
+	WordCount         int
+	NovelID, VolumeID ID
 }
 
 func (t ChapterUploaded) AggID() ID                { return t.aid }

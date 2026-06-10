@@ -44,10 +44,10 @@ func (cf Factory) UploadChapter(
 	}
 
 	err := cf.er.Append(ctx, ChapterUploaded{
-		id:           ulid.Make(),
-		aid:          c.id,
-		at:           Now(),
-		Seq:          seq,
+		id:  ulid.Make(),
+		aid: c.id,
+		at:  Now(),
+		// Seq:          seq,
 		Title:        c.title,
 		MainContent:  c.mainContent,
 		ExtraContent: c.extraContent,

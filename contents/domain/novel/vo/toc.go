@@ -31,6 +31,10 @@ func RestoreTOC(v []Volume, c []Chapter) (TOC, error) {
 }
 
 func (t TOC) AppendChapter(c Chapter) (TOC, error) {
+	if c.VolumeID == (ID{}) && len(t.volumes) != 0 {
+		c.VolumeID = t.volumes[0].ID
+	}
+
 	vi := t.volumeByID(c.VolumeID)
 	if vi < 0 {
 		return TOC{}, ErrVolumeNotFound
@@ -183,7 +187,7 @@ func (t *TOC) moveLeftToRightV2(l, r int) {
 // chapterRangeByVolumeIndex returns a left-open and right-closed index
 // interval.
 // of given volumes at vi.
-func (t *TOC) chapterRangeByVolumeIndex(vi int) (l, r int) {
+func (t TOC) chapterRangeByVolumeIndex(vi int) (l, r int) {
 	if vi < 0 || vi >= len(t.volumes) {
 		return -1, -1
 	}
@@ -327,20 +331,6 @@ func (t TOC) AppendVolume(
 	return t, v, nil
 }
 
-// RestoreVolume are intend to be internal used when restore data from repo.
-func (t *TOC) RestoreVolume(
-	id ID,
-	title, desc string,
-	kind VolumeKind,
-) {
-	t.volumes = append(t.volumes, Volume{
-		ID:          id,
-		Title:       title,
-		Description: desc,
-		Kind:        kind,
-	})
-}
-
 func (t TOC) LatestChapter() (c Chapter, err error) {
 	if t.isEmpty() {
 		return c, ErrNoContent
@@ -352,7 +342,7 @@ func (t TOC) LatestChapter() (c Chapter, err error) {
 func (t TOC) Volumes() (v []Volume) {
 	v = make([]Volume, len(t.volumes))
 	copy(v, t.volumes)
-	return
+	return v
 }
 
 func (t TOC) GetChapters() (c []Chapter) {

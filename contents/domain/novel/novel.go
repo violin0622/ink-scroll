@@ -78,6 +78,136 @@ func (n *Novel) AppendTags(ctx context.Context, tags ...vo.Tag) error {
 	return n.finish(ctx, ev.NewTagsUpdated(n.id, prev, n.tags))
 }
 
+func (n *Novel) UploadCover(ctx context.Context, cover vo.Cover) error {
+	e := ev.NewCoverUploaded(n.id, cover)
+	if err := n.imposeCoverUploaded(e); err != nil {
+		return err
+	}
+
+	return n.finish(ctx, e)
+}
+
+func (n *Novel) imposeCoverUploaded(e ev.CoverUploaded) error {
+	if n == nil {
+		return ErrNilPointer
+	}
+
+	n.cover = e.Cover
+	return nil
+}
+
+func (n *Novel) Unban(ctx context.Context) error {
+	e := ev.NewNovelUnbanned(n.ID())
+	if err := n.imposeNovelUnbanned(e); err != nil {
+		return err
+	}
+
+	return n.finish(ctx, e)
+}
+
+func (n *Novel) imposeNovelUnbanned(ev.NovelUnbanned) error {
+	if n == nil {
+		return ErrNilPointer
+	}
+
+	var err error
+	if n.releaseStatus, err = n.releaseStatus.AppealApproved(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Ban implements novel.
+func (n *Novel) Ban(ctx context.Context) error {
+	e := ev.NewNovelBanned(n.ID())
+	if err := n.imposeNovelBanned(e); err != nil {
+		return err
+	}
+	return n.finish(ctx, e)
+}
+
+func (n *Novel) imposeNovelBanned(ev.NovelBanned) error {
+	if n == nil {
+		return ErrNilPointer
+	}
+
+	var err error
+	if n.releaseStatus, err = n.releaseStatus.Banned(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ApplyRelease implements novel.
+func (n *Novel) ApplyPublish(ctx context.Context) error {
+	e := ev.NewPublishReviewSubmitted(n.ID())
+	if err := n.imposePublishReviewSubmitted(e); err != nil {
+		return err
+	}
+
+	return n.finish(ctx, e)
+}
+
+// WithdrawRelease implements novel.
+func (n *Novel) WithdrawRelease(ctx context.Context) error {
+	e := ev.NewWithdrawed(n.ID())
+	if err := n.imposeWithdrawed(e); err != nil {
+		return err
+	}
+
+	return n.finish(ctx, e)
+}
+
+func (n *Novel) imposePublishReviewSubmitted(ev.PublishReviewSubmitted) error {
+	if n == nil {
+		return ErrNilPointer
+	}
+
+	var err error
+	if n.releaseStatus, err = n.releaseStatus.PublishReviewSubmitted(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (n *Novel) imposeWithdrawed(ev.Withdrawed) error {
+	if n == nil {
+		return ErrNilPointer
+	}
+
+	var err error
+	if n.releaseStatus, err = n.releaseStatus.PublishReviewRejected(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Release implements novel.
+func (n *Novel) Publish(ctx context.Context) error {
+	e := ev.NewNovelPublished(n.ID())
+	if err := n.imposeNovelPublished(e); err != nil {
+		return err
+	}
+
+	return n.finish(ctx, e)
+}
+
+func (n *Novel) imposeNovelPublished(ev.NovelPublished) error {
+	if n == nil {
+		return ErrNilPointer
+	}
+
+	var err error
+	if n.releaseStatus, err = n.releaseStatus.PublishReviewApproved(); err != nil {
+		return err
+	}
+
+	return nil
+}
 func (n *Novel) RemoveTags(ctx context.Context, tags ...vo.Tag) error {
 	prev := slices.Clone(n.tags)
 	for i := range tags {
@@ -100,12 +230,68 @@ func (n *Novel) UpdateDescription(ctx context.Context, d string) error {
 	return n.finish(ctx, ev.NewDescUpdated(n.id, n.desc))
 }
 
-func (n *Novel) UploadNewChapter(
-	ctx context.Context, vid, id ID, wordcount int, uploadAt time.Time,
+type UpdateArg struct {
+	ChapterID, VolumeID ID
+	WordCount           int
+	ReleasedAt          time.Time
+}
+
+func (a *UpdateArg) validate() error {
+	if a.ChapterID == ZeroID {
+		return errors.New(`chapter id must not be zero`)
+	}
+
+	if a.VolumeID == ZeroID {
+		return errors.New(`volume id must not be zero`)
+	}
+
+	if a.WordCount == 0 {
+		return errors.New(`word count must not be zero`)
+	}
+
+	if a.ReleasedAt.IsZero() {
+		a.ReleasedAt = time.Now()
+	}
+
+	return nil
+}
+
+func (n *Novel) UploadChapter(
+	ctx context.Context, arg UpdateArg,
 ) error {
-	c := vo.Chapter{ID: id, VolumeID: vid}
-	e := ev.NewNewChapterUploaded(n.id, c, wordcount, uploadAt)
+	if err := arg.validate(); err != nil {
+		return VolumeError{
+			NovelID:  n.ID(),
+			VolumeID: arg.VolumeID,
+			Cause:    err,
+		}
+	}
+
+	c := vo.Chapter{ID: arg.ChapterID, VolumeID: arg.VolumeID}
+	e := ev.NewNewChapterUploaded(n.id, c, arg.WordCount, arg.ReleasedAt)
 	if err := n.imposeNewChapterUploaded(e); err != nil {
+		return err
+	}
+
+	return n.finish(ctx, e)
+}
+
+func (n *Novel) WithdrawChapter(
+	ctx context.Context, arg UpdateArg,
+) error {
+	if err := arg.validate(); err != nil {
+		return VolumeError{
+			NovelID:  n.ID(),
+			VolumeID: arg.VolumeID,
+			Cause:    err,
+		}
+	}
+
+	e := ev.NewChapterWithdrawed(n.ID(), vo.Chapter{
+		ID:       arg.ChapterID,
+		VolumeID: arg.VolumeID,
+	})
+	if err := n.imposeChapterWithdrawed(e); err != nil {
 		return err
 	}
 
@@ -301,6 +487,16 @@ func (n *Novel) applyEvent(e ev.Event) error {
 		return n.imposeNovelCreated(e)
 	case ev.NovelPublished:
 		return nil
+	case ev.PublishReviewSubmitted:
+		return n.imposePublishReviewSubmitted(e)
+	case ev.Withdrawed:
+		return n.imposeWithdrawed(e)
+	case ev.CoverUploaded:
+		return n.imposeCoverUploaded(e)
+	case ev.NovelBanned:
+		return n.imposeNovelBanned(e)
+	case ev.NovelUnbanned:
+		return n.imposeNovelUnbanned(e)
 	case ev.TagsUpdated:
 		return n.imposeTagsUpdated(e)
 	case ev.DescUpdated:
@@ -334,6 +530,7 @@ func (n *Novel) imposeNovelCreated(e ev.NovelCreated) error {
 	n.authorID = e.AuthorID
 	n.tags = e.Tags
 	n.cover = e.Cover
+	n.s = vo.Serial
 	n.releaseStatus = vo.Draft
 	n.category = e.Category
 	n.createdAt = e.EmittedAt()
@@ -364,6 +561,18 @@ func (n *Novel) imposeNolongerUpdate(ev.NolongerUpdate) error {
 	if n.s, err = n.s.MarkDesolated(); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (n *Novel) imposeChapterWithdrawed(e ev.ChapterWithdrawed) (err error) {
+	if n == nil {
+		return ErrNilPointer
+	}
+
+	if n.toc, err = n.toc.DropChapter(e.Chapter.ID); err != nil {
+		return err
+	}
+
 	return nil
 }
 
