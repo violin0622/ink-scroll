@@ -7,10 +7,10 @@
 package userv1
 
 import (
+	ulid "github.com/violin0622/ink-scroll/proto/gen/go/ulid"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
-	ulid "play-ddd/proto/gen/go/ulid"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -165,8 +165,8 @@ const file_users_user_v1_user_proto_rawDesc = "" +
 	"\x06Gender\x12\x16\n" +
 	"\x12GENDER_UNSPECIFIED\x10\x00\x12\x0f\n" +
 	"\vGENDER_MALE\x10\x01\x12\x11\n" +
-	"\rGENDER_FAMALE\x10\x02B\xa0\x01\n" +
-	"\x11com.users.user.v1B\tUserProtoP\x01Z*play-ddd/proto/gen/go/users/user/v1;userv1\xa2\x02\x03UUX\xaa\x02\rUsers.User.V1\xca\x02\rUsers\\User\\V1\xe2\x02\x19Users\\User\\V1\\GPBMetadata\xea\x02\x0fUsers::User::V1b\x06proto3"
+	"\rGENDER_FAMALE\x10\x02B\xb8\x01\n" +
+	"\x11com.users.user.v1B\tUserProtoP\x01ZBgithub.com/violin0622/ink-scroll/proto/gen/go/users/user/v1;userv1\xa2\x02\x03UUX\xaa\x02\rUsers.User.V1\xca\x02\rUsers\\User\\V1\xe2\x02\x19Users\\User\\V1\\GPBMetadata\xea\x02\x0fUsers::User::V1b\x06proto3"
 
 var (
 	file_users_user_v1_user_proto_rawDescOnce sync.Once

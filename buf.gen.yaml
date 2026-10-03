@@ -5,7 +5,7 @@ managed:
   enabled: true
   override:
     - file_option: go_package_prefix
-      value: play-ddd/proto/gen/go
+      value: github.com/violin0622/ink-scroll/proto/gen/go
   disable:
     # Don't modify any files in buf.build/googleapis/googleapis
     - module: buf.build/googleapis/googleapis

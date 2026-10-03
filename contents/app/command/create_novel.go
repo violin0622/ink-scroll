@@ -3,7 +3,8 @@ package command
 import (
 	"github.com/oklog/ulid/v2"
 
-	"play-ddd/contents/domain/novel"
+	"github.com/violin0622/ink-scroll/contents/domain/chapter"
+	"github.com/violin0622/ink-scroll/contents/domain/novel"
 )
 
 type CreateNovel struct {
@@ -15,9 +16,9 @@ type CreateNovel struct {
 }
 
 type UploadChapter struct {
-	NovelID                   novel.ID
-	Title                     string
-	MainContent, ExtraContent string
+	ChapterID chapter.ID
+	NovelID   novel.ID
+	VolumeID  novel.ID
 }
 
 type UpdateNovelInfo struct {

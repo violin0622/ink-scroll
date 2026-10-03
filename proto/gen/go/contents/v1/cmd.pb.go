@@ -8,9 +8,9 @@ package contentsv1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	ulid "github.com/violin0622/ink-scroll/proto/gen/go/ulid"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	ulid "play-ddd/proto/gen/go/ulid"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -392,8 +392,8 @@ const file_contents_v1_cmd_proto_rawDesc = "" +
 	"CmdService\x12P\n" +
 	"\vCreateNovel\x12\x1f.contents.v1.CreateNovelRequest\x1a .contents.v1.CreateNovelResponse\x12P\n" +
 	"\vUpdateNovel\x12\x1f.contents.v1.UpdateNovelRequest\x1a .contents.v1.UpdateNovelResponse\x12V\n" +
-	"\rUploadChapter\x12!.contents.v1.UploadChapterRequest\x1a\".contents.v1.UploadChapterResponseB\x96\x01\n" +
-	"\x0fcom.contents.v1B\bCmdProtoP\x01Z,play-ddd/proto/gen/go/contents/v1;contentsv1\xa2\x02\x03CXX\xaa\x02\vContents.V1\xca\x02\vContents\\V1\xe2\x02\x17Contents\\V1\\GPBMetadata\xea\x02\fContents::V1b\x06proto3"
+	"\rUploadChapter\x12!.contents.v1.UploadChapterRequest\x1a\".contents.v1.UploadChapterResponseB\xae\x01\n" +
+	"\x0fcom.contents.v1B\bCmdProtoP\x01ZDgithub.com/violin0622/ink-scroll/proto/gen/go/contents/v1;contentsv1\xa2\x02\x03CXX\xaa\x02\vContents.V1\xca\x02\vContents\\V1\xe2\x02\x17Contents\\V1\\GPBMetadata\xea\x02\fContents::V1b\x06proto3"
 
 var (
 	file_contents_v1_cmd_proto_rawDescOnce sync.Once

@@ -4,18 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
-	"github.com/oklog/ulid/v2"
 	"github.com/samber/lo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"play-ddd/contents/app/command"
-	"play-ddd/contents/domain/chapter"
-	"play-ddd/contents/domain/novel"
-	novelvo "play-ddd/contents/domain/novel/vo"
-	"play-ddd/utils/retry"
+	"github.com/violin0622/ink-scroll/contents/app/command"
+	"github.com/violin0622/ink-scroll/contents/domain/novel"
+	novelvo "github.com/violin0622/ink-scroll/contents/domain/novel/vo"
+	"github.com/violin0622/ink-scroll/utils/retry"
 )
 
 func (s *CommandHandler) CreateNovel(
@@ -30,7 +27,8 @@ func (s *CommandHandler) CreateNovel(
 		func() (novel.ID, error) {
 			retryCount += 1
 			return s.createNovel(ctx, cmd)
-		})
+		},
+	)
 
 	if retryCount > 0 {
 		s.stats.reqRetries[`CreateNovel`] += 1
@@ -66,7 +64,8 @@ func (s *CommandHandler) createNovel(
 				cmd.Title,
 				cmd.Desc,
 				cmd.Category,
-				cmd.Tags)
+				cmd.Tags,
+			)
 		if err != nil {
 			return err
 		}
@@ -105,7 +104,7 @@ func ensureNovelTitleAvailable(
 // UploadChapter 先后更新 Chapter 和 Novel 聚合。
 func (s *CommandHandler) UploadChapter(
 	ctx context.Context, cmd command.UploadChapter) (
-	id chapter.ID, err error,
+	err error,
 ) {
 	err = s.repo.Tx(func(tx Repo) error {
 		n, err := tx.Novel().Get(ctx, cmd.NovelID)
@@ -113,29 +112,17 @@ func (s *CommandHandler) UploadChapter(
 			return err
 		}
 
-		c, err := s.cf.
-			WithEventRepo(tx.Event()).
-			UploadChapter(
-				ctx,
-				n.ChapterCount()+1,
-				cmd.Title,
-				cmd.MainContent,
-				cmd.ExtraContent)
+		c, err := tx.Chapter().Get(ctx, cmd.ChapterID)
 		if err != nil {
 			return err
 		}
 
 		err = n.UploadChapter(ctx, novel.UpdateArg{
-			ChapterID:  id,
-			VolumeID:   ulid.Zero, //TODO
-			WordCount:  10,
-			ReleasedAt: time.Time{},
+			ChapterID:  c.ID(),
+			VolumeID:   cmd.VolumeID,
+			WordCount:  c.WordCount(),
+			ReleasedAt: c.ReleaseAt(),
 		})
-		if err != nil {
-			return err
-		}
-
-		err = tx.Chapter().Save(ctx, c)
 		if err != nil {
 			return err
 		}
@@ -145,14 +132,13 @@ func (s *CommandHandler) UploadChapter(
 			return err
 		}
 
-		id = c.ID()
 		return nil
 	})
 	if err != nil {
-		return chapter.ZeroID, fmt.Errorf(`upload chapter: %w`, err)
+		return fmt.Errorf(`upload chapter: %w`, err)
 	}
 
-	return id, nil
+	return nil
 }
 
 func (s *CommandHandler) UpdateNovel(
@@ -161,7 +147,8 @@ func (s *CommandHandler) UpdateNovel(
 	retries := -1
 	err := retry.New(
 		retry.Context(ctx),
-		retry.LastErrorOnly(true)).
+		retry.LastErrorOnly(true),
+	).
 		Do(func() error {
 			retries += 1
 			return s.repo.Tx(s.updateNovel(ctx, cmd))

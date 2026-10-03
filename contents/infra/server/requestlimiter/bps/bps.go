@@ -7,7 +7,7 @@ import (
 	"golang.org/x/time/rate"
 	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 
-	"play-ddd/contents/infra/server/requestlimiter"
+	"github.com/violin0622/ink-scroll/contents/infra/server/requestlimiter"
 )
 
 type bps struct {

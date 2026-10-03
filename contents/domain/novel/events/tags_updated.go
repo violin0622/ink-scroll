@@ -6,7 +6,7 @@ import (
 
 	"github.com/oklog/ulid/v2"
 
-	"play-ddd/contents/domain/novel/vo"
+	"github.com/violin0622/ink-scroll/contents/domain/novel/vo"
 )
 
 var _ Event = (*TagsUpdated)(nil)

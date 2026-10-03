@@ -5,8 +5,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"play-ddd/contents/domain/novel/events"
-	"play-ddd/contents/domain/novel/vo"
+	"github.com/violin0622/ink-scroll/contents/domain/novel/events"
+	"github.com/violin0622/ink-scroll/contents/domain/novel/vo"
 )
 
 var _ = Describe(`desc updated event`, func() {

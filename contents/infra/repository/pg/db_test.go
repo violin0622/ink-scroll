@@ -3,7 +3,7 @@ package pg_test
 import (
 	"testing"
 
-	"play-ddd/contents/infra/repository/pg"
+	"github.com/violin0622/ink-scroll/contents/infra/repository/pg"
 )
 
 func TestInitDB(t *testing.T) {

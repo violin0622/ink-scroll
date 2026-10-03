@@ -10,12 +10,12 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"gorm.io/gorm"
 
-	ne "play-ddd/contents/domain/novel/events"
-	"play-ddd/contents/domain/novel/vo"
-	"play-ddd/contents/infra/repository/pg"
-	eventrepo "play-ddd/contents/infra/repository/pg/event"
-	novelv1 "play-ddd/proto/gen/go/contents/novel/v1"
-	ulidpb "play-ddd/proto/gen/go/ulid"
+	ne "github.com/violin0622/ink-scroll/contents/domain/novel/events"
+	"github.com/violin0622/ink-scroll/contents/domain/novel/vo"
+	"github.com/violin0622/ink-scroll/contents/infra/repository/pg"
+	eventrepo "github.com/violin0622/ink-scroll/contents/infra/repository/pg/event"
+	novelv1 "github.com/violin0622/ink-scroll/proto/gen/go/contents/novel/v1"
+	ulidpb "github.com/violin0622/ink-scroll/proto/gen/go/ulid"
 )
 
 func TestControllers(t *testing.T) {

@@ -12,10 +12,10 @@ import (
 	healthv1 "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 
-	"play-ddd/contents/infra/server/log"
-	"play-ddd/contents/infra/server/requestlimiter"
-	"play-ddd/contents/infra/server/stats"
-	contentsv1 "play-ddd/proto/gen/go/contents/v1"
+	"github.com/violin0622/ink-scroll/contents/infra/server/log"
+	"github.com/violin0622/ink-scroll/contents/infra/server/requestlimiter"
+	"github.com/violin0622/ink-scroll/contents/infra/server/stats"
+	contentsv1 "github.com/violin0622/ink-scroll/proto/gen/go/contents/v1"
 )
 
 func New(

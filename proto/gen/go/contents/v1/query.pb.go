@@ -8,10 +8,10 @@ package contentsv1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	v1 "github.com/violin0622/ink-scroll/proto/gen/go/contents/novel/v1"
+	ulid "github.com/violin0622/ink-scroll/proto/gen/go/ulid"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	v1 "play-ddd/proto/gen/go/contents/novel/v1"
-	ulid "play-ddd/proto/gen/go/ulid"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -123,9 +123,9 @@ const file_contents_v1_query_proto_rawDesc = "" +
 	"\x10GetNovelResponse\x12.\n" +
 	"\x05novel\x18\x01 \x01(\v2\x18.contents.novel.v1.NovelR\x05novel2W\n" +
 	"\fQueryService\x12G\n" +
-	"\bGetNovel\x12\x1c.contents.v1.GetNovelRequest\x1a\x1d.contents.v1.GetNovelResponseB\x98\x01\n" +
+	"\bGetNovel\x12\x1c.contents.v1.GetNovelRequest\x1a\x1d.contents.v1.GetNovelResponseB\xb0\x01\n" +
 	"\x0fcom.contents.v1B\n" +
-	"QueryProtoP\x01Z,play-ddd/proto/gen/go/contents/v1;contentsv1\xa2\x02\x03CXX\xaa\x02\vContents.V1\xca\x02\vContents\\V1\xe2\x02\x17Contents\\V1\\GPBMetadata\xea\x02\fContents::V1b\x06proto3"
+	"QueryProtoP\x01ZDgithub.com/violin0622/ink-scroll/proto/gen/go/contents/v1;contentsv1\xa2\x02\x03CXX\xaa\x02\vContents.V1\xca\x02\vContents\\V1\xe2\x02\x17Contents\\V1\\GPBMetadata\xea\x02\fContents::V1b\x06proto3"
 
 var (
 	file_contents_v1_query_proto_rawDescOnce sync.Once

@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	domain "play-ddd/faculty/domain/teacher"
+	domain "github.com/violin0622/ink-scroll/faculty/domain/teacher"
 )
 
 type teacher struct {

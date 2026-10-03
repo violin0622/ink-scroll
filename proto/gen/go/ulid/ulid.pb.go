@@ -71,8 +71,8 @@ const file_ulid_ulid_proto_rawDesc = "" +
 	"\n" +
 	"\x0fulid/ulid.proto\x12\x04ulid\"\x1a\n" +
 	"\x04ULID\x12\x12\n" +
-	"\x04ulid\x18\x01 \x01(\tR\x04ulidBa\n" +
-	"\bcom.ulidB\tUlidProtoP\x01Z\x1aplay-ddd/proto/gen/go/ulid\xa2\x02\x03UXX\xaa\x02\x04Ulid\xca\x02\x04Ulid\xe2\x02\x10Ulid\\GPBMetadata\xea\x02\x04Ulidb\x06proto3"
+	"\x04ulid\x18\x01 \x01(\tR\x04ulidBy\n" +
+	"\bcom.ulidB\tUlidProtoP\x01Z2github.com/violin0622/ink-scroll/proto/gen/go/ulid\xa2\x02\x03UXX\xaa\x02\x04Ulid\xca\x02\x04Ulid\xe2\x02\x10Ulid\\GPBMetadata\xea\x02\x04Ulidb\x06proto3"
 
 var (
 	file_ulid_ulid_proto_rawDescOnce sync.Once

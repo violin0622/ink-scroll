@@ -8,9 +8,9 @@ import (
 	"github.com/oklog/ulid/v2"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"play-ddd/contents/infra/outbox"
-	novelv1 "play-ddd/proto/gen/go/contents/novel/v1"
-	ulidpb "play-ddd/proto/gen/go/ulid"
+	"github.com/violin0622/ink-scroll/contents/infra/outbox"
+	novelv1 "github.com/violin0622/ink-scroll/proto/gen/go/contents/novel/v1"
+	ulidpb "github.com/violin0622/ink-scroll/proto/gen/go/ulid"
 )
 
 var _ outbox.EventBus = &mockEventBus{}

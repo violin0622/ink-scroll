@@ -8,7 +8,7 @@ import (
 	"github.com/oklog/ulid/v2"
 	"github.com/samber/lo"
 
-	"play-ddd/utils/xtest"
+	"github.com/violin0622/ink-scroll/utils/xtest"
 )
 
 // setupToc 解析以 ABBCDDDFF 形式的字符串，返回对应结构的 TOC。

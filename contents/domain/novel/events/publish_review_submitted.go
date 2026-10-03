@@ -22,10 +22,13 @@ func NewPublishReviewSubmitted(aid ID) PublishReviewSubmitted {
 	}
 }
 
-func (t PublishReviewSubmitted) AggID() ID                { return t.aid }
-func (t PublishReviewSubmitted) AggKind() string          { return `Novel` }
-func (t PublishReviewSubmitted) EmittedAt() time.Time     { return t.at }
-func (t PublishReviewSubmitted) ID() ID                   { return t.id }
-func (t PublishReviewSubmitted) Kind() string             { return `PublishReviewSubmitted` }
-func (t PublishReviewSubmitted) String() string           { return formatEvent(t) }
+func (t PublishReviewSubmitted) AggID() ID            { return t.aid }
+func (t PublishReviewSubmitted) AggKind() string      { return `Novel` }
+func (t PublishReviewSubmitted) EmittedAt() time.Time { return t.at }
+func (t PublishReviewSubmitted) ID() ID               { return t.id }
+
+func (t PublishReviewSubmitted) Kind() string { return `PublishReviewSubmitted` }
+
+func (t PublishReviewSubmitted) String() string { return formatEvent(t) }
+
 func (t PublishReviewSubmitted) Payload() ([]byte, error) { return emptyPayload() }

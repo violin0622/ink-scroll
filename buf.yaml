@@ -2,7 +2,7 @@
 version: v2
 modules:
   - path: proto
-    name: play/ddd/contents
+    name: ink/scroll/contents
     excludes:
       - proto/vendor
   - path: proto/vendor

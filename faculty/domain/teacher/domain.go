@@ -5,8 +5,8 @@ import (
 
 	"github.com/oklog/ulid/v2"
 
-	"play-ddd/faculty/domain"
-	"play-ddd/faculty/domain/teacher/vo"
+	"github.com/violin0622/ink-scroll/faculty/domain"
+	"github.com/violin0622/ink-scroll/faculty/domain/teacher/vo"
 )
 
 type Record[ID comparable] interface {

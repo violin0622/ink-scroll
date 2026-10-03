@@ -8,10 +8,10 @@ import (
 
 	"gorm.io/gorm"
 
-	"play-ddd/contents/app"
-	"play-ddd/contents/domain/novel"
-	"play-ddd/contents/domain/novel/vo"
-	"play-ddd/contents/infra/repository/pg/convert"
+	"github.com/violin0622/ink-scroll/contents/app"
+	"github.com/violin0622/ink-scroll/contents/domain/novel"
+	"github.com/violin0622/ink-scroll/contents/domain/novel/vo"
+	"github.com/violin0622/ink-scroll/contents/infra/repository/pg/convert"
 )
 
 var _ app.NovelRepo = novelRepo{}

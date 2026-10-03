@@ -6,9 +6,9 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"play-ddd/contents/domain/novel"
-	"play-ddd/contents/infra/repository/pg/convert"
-	dtulid "play-ddd/contents/infra/repository/pg/datatypes/ulid"
+	"github.com/violin0622/ink-scroll/contents/domain/novel"
+	"github.com/violin0622/ink-scroll/contents/infra/repository/pg/convert"
+	dtulid "github.com/violin0622/ink-scroll/contents/infra/repository/pg/datatypes/ulid"
 )
 
 type novelRepo struct {

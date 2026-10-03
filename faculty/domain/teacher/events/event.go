@@ -5,7 +5,7 @@ import (
 
 	"github.com/oklog/ulid/v2"
 
-	"play-ddd/faculty/domain"
+	"github.com/violin0622/ink-scroll/faculty/domain"
 )
 
 type Event = domain.Event[ulid.ULID, ulid.ULID]

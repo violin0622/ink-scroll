@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strconv"
 
-	"play-ddd/utils/xslice"
+	"github.com/violin0622/ink-scroll/utils/xslice"
 )
 
 func ExampleMap() {

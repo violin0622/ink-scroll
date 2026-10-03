@@ -1,0 +1,19 @@
+syntax = "proto3";
+package event.v1;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+import "ulid/ulid.proto";
+
+option go_package = "event/v1;eventpb";
+
+// a general perpose event.
+message Event {
+  map<string, string> headers = 1;
+  ulid.ULID id = 10;
+  ulid.ULID aggregate_id = 11;
+  google.protobuf.Timestamp emit_at = 12;
+  string kind = 13;
+  string aggregate_kind = 14;
+  google.protobuf.Any payload = 15;
+}

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"play-ddd/cmd"
+	"github.com/violin0622/ink-scroll/cmd"
 )
 
 func main() {

@@ -1,0 +1,14 @@
+syntax = "proto3";
+package contents.chapter.v1;
+
+import "ulid/ulid.proto";
+
+option go_package = "contents/chapter/v1";
+
+message UploadedPayload {
+  string title = 1;
+  string main_content = 2;
+  string extra_content = 3;
+  ulid.ULID novel_id = 4;
+  ulid.ULID volume_id = 5;
+}

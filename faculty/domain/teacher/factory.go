@@ -7,8 +7,8 @@ import (
 
 	"github.com/oklog/ulid/v2"
 
-	ev "play-ddd/faculty/domain/teacher/events"
-	"play-ddd/faculty/domain/teacher/vo"
+	ev "github.com/violin0622/ink-scroll/faculty/domain/teacher/events"
+	"github.com/violin0622/ink-scroll/faculty/domain/teacher/vo"
 )
 
 type teacherBuilder struct {

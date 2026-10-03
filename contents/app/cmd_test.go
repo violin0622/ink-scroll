@@ -10,9 +10,9 @@ import (
 	. "github.com/onsi/gomega"
 	"go.uber.org/mock/gomock"
 
-	"play-ddd/contents/app/command"
-	"play-ddd/contents/domain/novel"
-	"play-ddd/utils/retry"
+	"github.com/violin0622/ink-scroll/contents/app/command"
+	"github.com/violin0622/ink-scroll/contents/domain/novel"
+	"github.com/violin0622/ink-scroll/utils/retry"
 )
 
 var _ = Describe("CommandHandler", func() {

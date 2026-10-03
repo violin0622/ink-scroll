@@ -10,8 +10,8 @@ import (
 	"github.com/oklog/ulid/v2"
 	"github.com/samber/lo"
 
-	ev "play-ddd/contents/domain/novel/events"
-	"play-ddd/contents/domain/novel/vo"
+	ev "github.com/violin0622/ink-scroll/contents/domain/novel/events"
+	"github.com/violin0622/ink-scroll/contents/domain/novel/vo"
 )
 
 type Factory struct {

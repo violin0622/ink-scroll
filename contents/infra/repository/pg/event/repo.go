@@ -6,9 +6,9 @@ import (
 
 	"gorm.io/gorm"
 
-	"play-ddd/common"
-	"play-ddd/contents/domain"
-	"play-ddd/contents/domain/novel"
+	"github.com/violin0622/ink-scroll/common"
+	"github.com/violin0622/ink-scroll/contents/domain"
+	"github.com/violin0622/ink-scroll/contents/domain/novel"
 )
 
 var _ domain.EventRepo[novel.ID, novel.ID] = eventRepo{}

@@ -5,7 +5,7 @@ import (
 
 	"github.com/oklog/ulid/v2"
 
-	novelv1 "play-ddd/proto/gen/go/contents/novel/v1"
+	novelv1 "github.com/violin0622/ink-scroll/proto/gen/go/contents/novel/v1"
 )
 
 // EventRepo is interface between outbox processor and event persistent storage.

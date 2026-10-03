@@ -6,10 +6,10 @@ import (
 	"runtime"
 	"strconv"
 
-	"play-ddd/contents/domain/novel"
-	"play-ddd/contents/domain/novel/vo"
-	novelv1 "play-ddd/proto/gen/go/contents/novel/v1"
-	ustatus "play-ddd/utils/grpc/status"
+	"github.com/violin0622/ink-scroll/contents/domain/novel"
+	"github.com/violin0622/ink-scroll/contents/domain/novel/vo"
+	novelv1 "github.com/violin0622/ink-scroll/proto/gen/go/contents/novel/v1"
+	ustatus "github.com/violin0622/ink-scroll/utils/grpc/status"
 )
 
 func toStatus(ep *error) {

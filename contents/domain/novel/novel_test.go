@@ -9,10 +9,10 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"play-ddd/common"
-	"play-ddd/contents/domain/novel"
-	"play-ddd/contents/domain/novel/events"
-	"play-ddd/contents/domain/novel/vo"
+	"github.com/violin0622/ink-scroll/common"
+	"github.com/violin0622/ink-scroll/contents/domain/novel"
+	"github.com/violin0622/ink-scroll/contents/domain/novel/events"
+	"github.com/violin0622/ink-scroll/contents/domain/novel/vo"
 )
 
 var _ novel.EventRepo = (*nopEventRepo)(nil)
@@ -30,7 +30,8 @@ var _ = Describe(`NovelReplayEvents`, func() {
 		err          error
 		id, autherID = ulid.Make(), ulid.Make()
 		cover, _     = vo.NewCover(`https://example.com/cover.png`)
-		fac          = novel.NewFactory(logr.Discard()).WithEventRepo(nopEventRepo{})
+		fac          = novel.NewFactory(logr.Discard()).
+				WithEventRepo(nopEventRepo{})
 	)
 
 	// events
@@ -151,7 +152,9 @@ var _ = Describe(`NovelReplayEvents`, func() {
 		err = n.ReplayEvents(novelCreated)
 		Ω(err).ShouldNot(HaveOccurred())
 
-		uploadedCover, err := vo.NewCover(`https://example.com/uploaded-cover.png`)
+		uploadedCover, err := vo.NewCover(
+			`https://example.com/uploaded-cover.png`,
+		)
 		Ω(err).ShouldNot(HaveOccurred())
 
 		err = n.UploadCover(context.Background(), uploadedCover)

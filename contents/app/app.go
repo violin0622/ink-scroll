@@ -5,8 +5,8 @@ import (
 
 	"github.com/go-logr/logr"
 
-	"play-ddd/contents/domain/chapter"
-	"play-ddd/contents/domain/novel"
+	"github.com/violin0622/ink-scroll/contents/domain/chapter"
+	"github.com/violin0622/ink-scroll/contents/domain/novel"
 )
 
 type CommandHandler struct {

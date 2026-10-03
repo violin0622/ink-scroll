@@ -8,7 +8,7 @@ import (
 
 	"github.com/oklog/ulid/v2"
 
-	"play-ddd/common"
+	"github.com/violin0622/ink-scroll/common"
 )
 
 var _ Aggregate = Chapter{}
@@ -19,6 +19,7 @@ type Chapter struct {
 	title        string
 	mainContent  string
 	extraContent string
+	releaseAt    time.Time
 
 	er EventRepo
 }
@@ -29,6 +30,7 @@ func (c Chapter) Title() string        { return c.title }
 func (c Chapter) MainContent() string  { return c.mainContent }
 func (c Chapter) ExtraContent() string { return c.extraContent }
 func (c Chapter) WordCount() int       { return countWords(c.mainContent) }
+func (c Chapter) ReleaseAt() time.Time { return c.releaseAt }
 
 func New(er EventRepo) Chapter { return Chapter{er: er} }
 

@@ -5,7 +5,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	ne "play-ddd/contents/domain/novel/events"
+	ne "github.com/violin0622/ink-scroll/contents/domain/novel/events"
 )
 
 var _ = Describe(`publish review events`, func() {

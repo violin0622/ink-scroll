@@ -8,21 +8,22 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	ne "play-ddd/contents/domain/novel/events"
-	novelv1 "play-ddd/proto/gen/go/contents/novel/v1"
-	ulidpb "play-ddd/proto/gen/go/ulid"
+	ne "github.com/violin0622/ink-scroll/contents/domain/novel/events"
+	novelv1 "github.com/violin0622/ink-scroll/proto/gen/go/contents/novel/v1"
+	eventv1 "github.com/violin0622/ink-scroll/proto/gen/go/event/v1"
+	ulidpb "github.com/violin0622/ink-scroll/proto/gen/go/ulid"
 )
 
 var _ = Describe(`NovelCreatedV2 event fromPB`, func() {
 	var (
-		payload, _ = anypb.New(&novelv1.NovelCreated{
+		payload, _ = anypb.New(&novelv1.NovelCreatedPayload{
 			AuthorId:    ulidpb.From(ulid.Make()),
 			Title:       `My Book Title`,
 			Description: `My book is good!`,
 			Tags:        []string{`Tokyo`, `Hot`},
 			Category:    `Story`,
 		})
-		pbEvent = novelv1.Event{
+		pbEvent = eventv1.Event{
 			Id:            ulidpb.From(ulid.Make()),
 			AggregateId:   ulidpb.From(ulid.Make()),
 			EmitAt:        timestamppb.Now(),
@@ -33,7 +34,7 @@ var _ = Describe(`NovelCreatedV2 event fromPB`, func() {
 	)
 
 	It(`can unmarshal from proto`, func() {
-		var e ne.NovelCreatedV2
+		var e ne.NovelCreated
 		Ω(e.FromPB(&pbEvent)).Should(Succeed())
 		Ω(e.ID()).Should(BeEquivalentTo(pbEvent.GetId().Into()))
 

@@ -7,11 +7,11 @@
 package novelv1
 
 import (
+	ulid "github.com/violin0622/ink-scroll/proto/gen/go/ulid"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	anypb "google.golang.org/protobuf/types/known/anypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
-	ulid "play-ddd/proto/gen/go/ulid"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -26,12 +26,13 @@ const (
 
 type Event struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            *ulid.ULID             `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	AggregateId   *ulid.ULID             `protobuf:"bytes,2,opt,name=aggregate_id,json=aggregateId,proto3" json:"aggregate_id,omitempty"`
-	EmitAt        *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=emit_at,json=emitAt,proto3" json:"emit_at,omitempty"`
-	Kind          string                 `protobuf:"bytes,4,opt,name=kind,proto3" json:"kind,omitempty"`
-	AggregateKind string                 `protobuf:"bytes,5,opt,name=aggregate_kind,json=aggregateKind,proto3" json:"aggregate_kind,omitempty"`
-	Payload       *anypb.Any             `protobuf:"bytes,6,opt,name=payload,proto3" json:"payload,omitempty"`
+	Headers       map[string]string      `protobuf:"bytes,1,rep,name=headers,proto3" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Id            *ulid.ULID             `protobuf:"bytes,10,opt,name=id,proto3" json:"id,omitempty"`
+	AggregateId   *ulid.ULID             `protobuf:"bytes,11,opt,name=aggregate_id,json=aggregateId,proto3" json:"aggregate_id,omitempty"`
+	EmitAt        *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=emit_at,json=emitAt,proto3" json:"emit_at,omitempty"`
+	Kind          string                 `protobuf:"bytes,13,opt,name=kind,proto3" json:"kind,omitempty"`
+	AggregateKind string                 `protobuf:"bytes,14,opt,name=aggregate_kind,json=aggregateKind,proto3" json:"aggregate_kind,omitempty"`
+	Payload       *anypb.Any             `protobuf:"bytes,15,opt,name=payload,proto3" json:"payload,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -64,6 +65,13 @@ func (x *Event) ProtoReflect() protoreflect.Message {
 // Deprecated: Use Event.ProtoReflect.Descriptor instead.
 func (*Event) Descriptor() ([]byte, []int) {
 	return file_contents_novel_v1_events_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Event) GetHeaders() map[string]string {
+	if x != nil {
+		return x.Headers
+	}
+	return nil
 }
 
 func (x *Event) GetId() *ulid.ULID {
@@ -108,7 +116,7 @@ func (x *Event) GetPayload() *anypb.Any {
 	return nil
 }
 
-type NovelCreated struct {
+type NovelCreatedPayload struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AuthorId      *ulid.ULID             `protobuf:"bytes,1,opt,name=author_id,json=authorId,proto3" json:"author_id,omitempty"`
 	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
@@ -119,20 +127,20 @@ type NovelCreated struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *NovelCreated) Reset() {
-	*x = NovelCreated{}
+func (x *NovelCreatedPayload) Reset() {
+	*x = NovelCreatedPayload{}
 	mi := &file_contents_novel_v1_events_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *NovelCreated) String() string {
+func (x *NovelCreatedPayload) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*NovelCreated) ProtoMessage() {}
+func (*NovelCreatedPayload) ProtoMessage() {}
 
-func (x *NovelCreated) ProtoReflect() protoreflect.Message {
+func (x *NovelCreatedPayload) ProtoReflect() protoreflect.Message {
 	mi := &file_contents_novel_v1_events_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -144,40 +152,40 @@ func (x *NovelCreated) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use NovelCreated.ProtoReflect.Descriptor instead.
-func (*NovelCreated) Descriptor() ([]byte, []int) {
+// Deprecated: Use NovelCreatedPayload.ProtoReflect.Descriptor instead.
+func (*NovelCreatedPayload) Descriptor() ([]byte, []int) {
 	return file_contents_novel_v1_events_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *NovelCreated) GetAuthorId() *ulid.ULID {
+func (x *NovelCreatedPayload) GetAuthorId() *ulid.ULID {
 	if x != nil {
 		return x.AuthorId
 	}
 	return nil
 }
 
-func (x *NovelCreated) GetTitle() string {
+func (x *NovelCreatedPayload) GetTitle() string {
 	if x != nil {
 		return x.Title
 	}
 	return ""
 }
 
-func (x *NovelCreated) GetDescription() string {
+func (x *NovelCreatedPayload) GetDescription() string {
 	if x != nil {
 		return x.Description
 	}
 	return ""
 }
 
-func (x *NovelCreated) GetTags() []string {
+func (x *NovelCreatedPayload) GetTags() []string {
 	if x != nil {
 		return x.Tags
 	}
 	return nil
 }
 
-func (x *NovelCreated) GetCategory() string {
+func (x *NovelCreatedPayload) GetCategory() string {
 	if x != nil {
 		return x.Category
 	}
@@ -232,17 +240,22 @@ var File_contents_novel_v1_events_proto protoreflect.FileDescriptor
 
 const file_contents_novel_v1_events_proto_rawDesc = "" +
 	"\n" +
-	"\x1econtents/novel/v1/events.proto\x12\x11contents.novel.v1\x1a\x1dcontents/novel/v1/novel.proto\x1a\x19google/protobuf/any.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x0fulid/ulid.proto\"\xf2\x01\n" +
-	"\x05Event\x12\x1a\n" +
-	"\x02id\x18\x01 \x01(\v2\n" +
+	"\x1econtents/novel/v1/events.proto\x12\x11contents.novel.v1\x1a\x1dcontents/novel/v1/novel.proto\x1a\x19google/protobuf/any.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x0fulid/ulid.proto\"\xef\x02\n" +
+	"\x05Event\x12?\n" +
+	"\aheaders\x18\x01 \x03(\v2%.contents.novel.v1.Event.HeadersEntryR\aheaders\x12\x1a\n" +
+	"\x02id\x18\n" +
+	" \x01(\v2\n" +
 	".ulid.ULIDR\x02id\x12-\n" +
-	"\faggregate_id\x18\x02 \x01(\v2\n" +
+	"\faggregate_id\x18\v \x01(\v2\n" +
 	".ulid.ULIDR\vaggregateId\x123\n" +
-	"\aemit_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x06emitAt\x12\x12\n" +
-	"\x04kind\x18\x04 \x01(\tR\x04kind\x12%\n" +
-	"\x0eaggregate_kind\x18\x05 \x01(\tR\raggregateKind\x12.\n" +
-	"\apayload\x18\x06 \x01(\v2\x14.google.protobuf.AnyR\apayload\"\x9f\x01\n" +
-	"\fNovelCreated\x12'\n" +
+	"\aemit_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\x06emitAt\x12\x12\n" +
+	"\x04kind\x18\r \x01(\tR\x04kind\x12%\n" +
+	"\x0eaggregate_kind\x18\x0e \x01(\tR\raggregateKind\x12.\n" +
+	"\apayload\x18\x0f \x01(\v2\x14.google.protobuf.AnyR\apayload\x1a:\n" +
+	"\fHeadersEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xa6\x01\n" +
+	"\x13NovelCreatedPayload\x12'\n" +
 	"\tauthor_id\x18\x01 \x01(\v2\n" +
 	".ulid.ULIDR\bauthorId\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
@@ -250,8 +263,8 @@ const file_contents_novel_v1_events_proto_rawDesc = "" +
 	"\x04tags\x18\x04 \x03(\tR\x04tags\x12\x1a\n" +
 	"\bcategory\x18\x05 \x01(\tR\bcategory\"P\n" +
 	"\x12NewChapterUploaded\x12:\n" +
-	"\apayload\x18\x01 \x01(\v2 .contents.novel.v1.Novel.ChapterR\apayloadB\xbb\x01\n" +
-	"\x15com.contents.novel.v1B\vEventsProtoP\x01Z/play-ddd/proto/gen/go/contents/novel/v1;novelv1\xa2\x02\x03CNX\xaa\x02\x11Contents.Novel.V1\xca\x02\x11Contents\\Novel\\V1\xe2\x02\x1dContents\\Novel\\V1\\GPBMetadata\xea\x02\x13Contents::Novel::V1b\x06proto3"
+	"\apayload\x18\x01 \x01(\v2 .contents.novel.v1.Novel.ChapterR\apayloadB\xd3\x01\n" +
+	"\x15com.contents.novel.v1B\vEventsProtoP\x01ZGgithub.com/violin0622/ink-scroll/proto/gen/go/contents/novel/v1;novelv1\xa2\x02\x03CNX\xaa\x02\x11Contents.Novel.V1\xca\x02\x11Contents\\Novel\\V1\xe2\x02\x1dContents\\Novel\\V1\\GPBMetadata\xea\x02\x13Contents::Novel::V1b\x06proto3"
 
 var (
 	file_contents_novel_v1_events_proto_rawDescOnce sync.Once
@@ -265,28 +278,30 @@ func file_contents_novel_v1_events_proto_rawDescGZIP() []byte {
 	return file_contents_novel_v1_events_proto_rawDescData
 }
 
-var file_contents_novel_v1_events_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_contents_novel_v1_events_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_contents_novel_v1_events_proto_goTypes = []any{
 	(*Event)(nil),                 // 0: contents.novel.v1.Event
-	(*NovelCreated)(nil),          // 1: contents.novel.v1.NovelCreated
+	(*NovelCreatedPayload)(nil),   // 1: contents.novel.v1.NovelCreatedPayload
 	(*NewChapterUploaded)(nil),    // 2: contents.novel.v1.NewChapterUploaded
-	(*ulid.ULID)(nil),             // 3: ulid.ULID
-	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
-	(*anypb.Any)(nil),             // 5: google.protobuf.Any
-	(*Novel_Chapter)(nil),         // 6: contents.novel.v1.Novel.Chapter
+	nil,                           // 3: contents.novel.v1.Event.HeadersEntry
+	(*ulid.ULID)(nil),             // 4: ulid.ULID
+	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
+	(*anypb.Any)(nil),             // 6: google.protobuf.Any
+	(*Novel_Chapter)(nil),         // 7: contents.novel.v1.Novel.Chapter
 }
 var file_contents_novel_v1_events_proto_depIdxs = []int32{
-	3, // 0: contents.novel.v1.Event.id:type_name -> ulid.ULID
-	3, // 1: contents.novel.v1.Event.aggregate_id:type_name -> ulid.ULID
-	4, // 2: contents.novel.v1.Event.emit_at:type_name -> google.protobuf.Timestamp
-	5, // 3: contents.novel.v1.Event.payload:type_name -> google.protobuf.Any
-	3, // 4: contents.novel.v1.NovelCreated.author_id:type_name -> ulid.ULID
-	6, // 5: contents.novel.v1.NewChapterUploaded.payload:type_name -> contents.novel.v1.Novel.Chapter
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	3, // 0: contents.novel.v1.Event.headers:type_name -> contents.novel.v1.Event.HeadersEntry
+	4, // 1: contents.novel.v1.Event.id:type_name -> ulid.ULID
+	4, // 2: contents.novel.v1.Event.aggregate_id:type_name -> ulid.ULID
+	5, // 3: contents.novel.v1.Event.emit_at:type_name -> google.protobuf.Timestamp
+	6, // 4: contents.novel.v1.Event.payload:type_name -> google.protobuf.Any
+	4, // 5: contents.novel.v1.NovelCreatedPayload.author_id:type_name -> ulid.ULID
+	7, // 6: contents.novel.v1.NewChapterUploaded.payload:type_name -> contents.novel.v1.Novel.Chapter
+	7, // [7:7] is the sub-list for method output_type
+	7, // [7:7] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_contents_novel_v1_events_proto_init() }
@@ -301,7 +316,7 @@ func file_contents_novel_v1_events_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_contents_novel_v1_events_proto_rawDesc), len(file_contents_novel_v1_events_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

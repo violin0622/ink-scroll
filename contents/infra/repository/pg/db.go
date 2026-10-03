@@ -9,12 +9,12 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	"play-ddd/contents/app"
-	"play-ddd/contents/domain/chapter"
-	"play-ddd/contents/domain/novel"
-	"play-ddd/contents/infra/outbox"
-	pgevent "play-ddd/contents/infra/repository/pg/event"
-	pgnovel "play-ddd/contents/infra/repository/pg/novel"
+	"github.com/violin0622/ink-scroll/contents/app"
+	"github.com/violin0622/ink-scroll/contents/domain/chapter"
+	"github.com/violin0622/ink-scroll/contents/domain/novel"
+	"github.com/violin0622/ink-scroll/contents/infra/outbox"
+	pgevent "github.com/violin0622/ink-scroll/contents/infra/repository/pg/event"
+	pgnovel "github.com/violin0622/ink-scroll/contents/infra/repository/pg/novel"
 )
 
 const DSN = `host=127.0.0.1 port=15432 sslmode=disable user=postgres password=mysecretpassword dbname=playddd`

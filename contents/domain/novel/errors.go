@@ -6,7 +6,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"play-ddd/common"
+	"github.com/violin0622/ink-scroll/common"
 )
 
 var newInvariantsBrokenError = common.NewInvariantsBrokenError

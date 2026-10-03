@@ -6,7 +6,7 @@ import (
 
 	"github.com/puzpuzpuz/xsync/v4"
 
-	"play-ddd/contents/domain/novel"
+	"github.com/violin0622/ink-scroll/contents/domain/novel"
 )
 
 var _ novel.Repo = (*repo)(nil)

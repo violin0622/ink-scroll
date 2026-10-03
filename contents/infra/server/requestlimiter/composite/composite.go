@@ -3,7 +3,7 @@ package composite
 import (
 	"golang.org/x/time/rate"
 
-	requestlimter "play-ddd/contents/infra/server/requestlimiter"
+	requestlimter "github.com/violin0622/ink-scroll/contents/infra/server/requestlimiter"
 )
 
 func New(rl ...requestlimter.RequestLimiter) composite {

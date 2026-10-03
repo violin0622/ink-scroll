@@ -3,12 +3,12 @@ package novel
 import (
 	"github.com/oklog/ulid/v2"
 
-	"play-ddd/contents/domain/novel"
-	"play-ddd/contents/domain/novel/vo"
-	"play-ddd/contents/infra/repository/pg/convert"
-	dt "play-ddd/contents/infra/repository/pg/datatypes"
-	"play-ddd/contents/infra/repository/pg/datatypes/ts"
-	dtulid "play-ddd/contents/infra/repository/pg/datatypes/ulid"
+	"github.com/violin0622/ink-scroll/contents/domain/novel"
+	"github.com/violin0622/ink-scroll/contents/domain/novel/vo"
+	"github.com/violin0622/ink-scroll/contents/infra/repository/pg/convert"
+	dt "github.com/violin0622/ink-scroll/contents/infra/repository/pg/datatypes"
+	"github.com/violin0622/ink-scroll/contents/infra/repository/pg/datatypes/ts"
+	dtulid "github.com/violin0622/ink-scroll/contents/infra/repository/pg/datatypes/ulid"
 )
 
 // var _ app.NovelRepo = novelRepo{}

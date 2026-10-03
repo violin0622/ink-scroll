@@ -11,8 +11,8 @@ package app
 
 import (
 	context "context"
-	chapter "play-ddd/contents/domain/chapter"
-	novel "play-ddd/contents/domain/novel"
+	chapter "github.com/violin0622/ink-scroll/contents/domain/chapter"
+	novel "github.com/violin0622/ink-scroll/contents/domain/novel"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"

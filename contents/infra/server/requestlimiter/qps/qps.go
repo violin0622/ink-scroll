@@ -4,7 +4,7 @@ import (
 	"golang.org/x/time/rate"
 	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 
-	requestlimter "play-ddd/contents/infra/server/requestlimiter"
+	requestlimter "github.com/violin0622/ink-scroll/contents/infra/server/requestlimiter"
 )
 
 var _ requestlimter.RequestLimiter = (*qps)(nil)

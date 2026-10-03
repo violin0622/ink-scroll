@@ -3,8 +3,8 @@ package chapter
 import (
 	"github.com/oklog/ulid/v2"
 
-	"play-ddd/common"
-	"play-ddd/contents/domain"
+	"github.com/violin0622/ink-scroll/common"
+	"github.com/violin0622/ink-scroll/contents/domain"
 )
 
 type (

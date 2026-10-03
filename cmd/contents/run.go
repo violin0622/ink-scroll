@@ -10,18 +10,18 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
 
-	"play-ddd/contents/app"
-	"play-ddd/contents/domain/chapter"
-	"play-ddd/contents/domain/novel"
-	"play-ddd/contents/iface/grpc"
-	ebstderr "play-ddd/contents/infra/eventbus/stderr"
-	"play-ddd/contents/infra/outbox"
-	"play-ddd/contents/infra/repository/pg"
-	"play-ddd/contents/infra/server"
-	"play-ddd/contents/infra/server/requestlimiter/bps"
-	"play-ddd/contents/infra/server/requestlimiter/composite"
-	"play-ddd/contents/infra/server/requestlimiter/nop"
-	"play-ddd/contents/infra/server/requestlimiter/qps"
+	"github.com/violin0622/ink-scroll/contents/app"
+	"github.com/violin0622/ink-scroll/contents/domain/chapter"
+	"github.com/violin0622/ink-scroll/contents/domain/novel"
+	"github.com/violin0622/ink-scroll/contents/iface/grpc"
+	ebstderr "github.com/violin0622/ink-scroll/contents/infra/eventbus/stderr"
+	"github.com/violin0622/ink-scroll/contents/infra/outbox"
+	"github.com/violin0622/ink-scroll/contents/infra/repository/pg"
+	"github.com/violin0622/ink-scroll/contents/infra/server"
+	"github.com/violin0622/ink-scroll/contents/infra/server/requestlimiter/bps"
+	"github.com/violin0622/ink-scroll/contents/infra/server/requestlimiter/composite"
+	"github.com/violin0622/ink-scroll/contents/infra/server/requestlimiter/nop"
+	"github.com/violin0622/ink-scroll/contents/infra/server/requestlimiter/qps"
 )
 
 func Run() *cobra.Command {
@@ -52,7 +52,7 @@ func runErr(*cobra.Command, []string) error {
 	qh := app.NewQueryHandler()
 	querySvc := grpc.NewQueryService(qh)
 
-	apiName := `/play-ddd/contents`
+	apiName := `/github.com/violin0622/ink-scroll/contents`
 	nopLimiter := nop.New()
 	qpsLimiter := qps.New(apiName)
 	qpsLimiter.Set(100, 100)

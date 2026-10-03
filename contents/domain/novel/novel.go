@@ -8,9 +8,9 @@ import (
 
 	"github.com/go-logr/logr"
 
-	"play-ddd/common"
-	ev "play-ddd/contents/domain/novel/events"
-	"play-ddd/contents/domain/novel/vo"
+	"github.com/violin0622/ink-scroll/common"
+	ev "github.com/violin0622/ink-scroll/contents/domain/novel/events"
+	"github.com/violin0622/ink-scroll/contents/domain/novel/vo"
 )
 
 var _ Aggregate = (*Novel)(nil)
@@ -208,6 +208,7 @@ func (n *Novel) imposeNovelPublished(ev.NovelPublished) error {
 
 	return nil
 }
+
 func (n *Novel) RemoveTags(ctx context.Context, tags ...vo.Tag) error {
 	prev := slices.Clone(n.tags)
 	for i := range tags {

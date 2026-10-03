@@ -1,4 +1,4 @@
-module play-ddd
+module github.com/violin0622/ink-scroll
 
 go 1.25.0
 
@@ -24,6 +24,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
+	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/cel-go v0.26.1 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20250403155104-27863c87afa6 // indirect
@@ -67,6 +68,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.6 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/nsqio/go-nsq v1.1.0
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/puzpuzpuz/xsync/v4 v4.2.0
 	github.com/spf13/cobra v1.10.1

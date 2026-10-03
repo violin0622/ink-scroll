@@ -6,8 +6,8 @@ import (
 
 	"github.com/oklog/ulid/v2"
 
-	"play-ddd/common"
-	"play-ddd/contents/domain/novel/vo"
+	"github.com/violin0622/ink-scroll/common"
+	"github.com/violin0622/ink-scroll/contents/domain/novel/vo"
 )
 
 var formatEvent = common.FormatEvent[ID, ID]
@@ -40,25 +40,47 @@ func (t ChapterRevised) Kind() string             { return `ChapterRevised` }
 func (t ChapterRevised) String() string           { return formatEvent(t) }
 func (t ChapterRevised) Payload() ([]byte, error) { return json.Marshal(t) }
 
-var _ Event = ChapterUploaded{}
+// var _ Event = ChapterUploaded{}
 
-type ChapterUploaded struct {
-	id  ID
-	aid ID
-	at  time.Time
+// type ChapterUploaded struct {
+// 	id  ID
+// 	aid ID
+// 	at  time.Time
+//
+// 	// Seq               int
+// 	Title             string
+// 	MainContent       string
+// 	ExtraContent      string
+// 	WordCount         int
+// 	NovelID, VolumeID ID
+// }
+//
+// func (t ChapterUploaded) AggID() ID                { return t.aid }
+// func (t ChapterUploaded) AggKind() string          { return `Chapter` }
+// func (t ChapterUploaded) EmittedAt() time.Time     { return t.at }
+// func (t ChapterUploaded) ID() ID                   { return t.id }
+// func (t ChapterUploaded) Kind() string             { return `ChapterUploaded`
+// }
+// func (t ChapterUploaded) String() string           { return formatEvent(t) }
+// func (t ChapterUploaded) Payload() ([]byte, error) { return json.Marshal(t) }
 
-	// Seq               int
-	Title             string
-	MainContent       string
-	ExtraContent      string
-	WordCount         int
-	NovelID, VolumeID ID
-}
-
-func (t ChapterUploaded) AggID() ID                { return t.aid }
-func (t ChapterUploaded) AggKind() string          { return `Chapter` }
-func (t ChapterUploaded) EmittedAt() time.Time     { return t.at }
-func (t ChapterUploaded) ID() ID                   { return t.id }
-func (t ChapterUploaded) Kind() string             { return `ChapterUploaded` }
-func (t ChapterUploaded) String() string           { return formatEvent(t) }
-func (t ChapterUploaded) Payload() ([]byte, error) { return json.Marshal(t) }
+// func NewChapterUploadedV2(
+// 	aid ID, title, main, extra string, nid, vid ID,
+// ) ChapterUploadedV2 {
+// 	return event.NewBase(
+// 		ulid.Make(),
+// 		aid,
+// 		`uploaded`,
+// 		`chapter`,
+// 		&chapterv1.UploadedPayload{
+// 			Title:        title,
+// 			MainContent:  main,
+// 			ExtraContent: extra,
+// 			NovelId:      ulidpb.From(nid),
+// 			VolumeId:     ulidpb.From(vid),
+// 		},
+// 	)
+// }
+//
+// type ChapterUploadedV2 = event.Base[chapterv1.UploadedPayload,
+// *chapterv1.UploadedPayload]

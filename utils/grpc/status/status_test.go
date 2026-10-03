@@ -9,7 +9,7 @@ import (
 	grpcstatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/protoadapt"
 
-	statusx "play-ddd/utils/grpc/status"
+	statusx "github.com/violin0622/ink-scroll/utils/grpc/status"
 )
 
 func TestCodeHelpersWithDetails(t *testing.T) {

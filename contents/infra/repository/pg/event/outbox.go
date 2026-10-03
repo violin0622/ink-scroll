@@ -6,9 +6,9 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"play-ddd/contents/infra/outbox"
-	novelv1 "play-ddd/proto/gen/go/contents/novel/v1"
-	"play-ddd/utils/xerr"
+	"github.com/violin0622/ink-scroll/contents/infra/outbox"
+	novelv1 "github.com/violin0622/ink-scroll/proto/gen/go/contents/novel/v1"
+	"github.com/violin0622/ink-scroll/utils/xerr"
 )
 
 var _ outbox.EventRepo = eventRepo{}

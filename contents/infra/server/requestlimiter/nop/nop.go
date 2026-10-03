@@ -5,7 +5,7 @@ import (
 	"math"
 	"sync/atomic"
 
-	requestlimter "play-ddd/contents/infra/server/requestlimiter"
+	requestlimter "github.com/violin0622/ink-scroll/contents/infra/server/requestlimiter"
 )
 
 type nop struct {

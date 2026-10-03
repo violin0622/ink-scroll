@@ -3,7 +3,7 @@ package domain
 import (
 	"context"
 
-	"play-ddd/common"
+	"github.com/violin0622/ink-scroll/common"
 )
 
 type EventRepo[EID, AID comparable] interface {

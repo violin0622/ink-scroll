@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"play-ddd/contents/infra/outbox"
-	ulidpb "play-ddd/proto/gen/go/ulid"
+	"github.com/violin0622/ink-scroll/contents/infra/outbox"
+	ulidpb "github.com/violin0622/ink-scroll/proto/gen/go/ulid"
 )
 
 var _ ulidpb.ULID

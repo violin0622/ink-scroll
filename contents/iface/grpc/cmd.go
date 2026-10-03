@@ -3,10 +3,12 @@ package grpc
 import (
 	"context"
 
-	"play-ddd/contents/app"
-	"play-ddd/contents/app/command"
-	contv1 "play-ddd/proto/gen/go/contents/v1"
-	ulidpb "play-ddd/proto/gen/go/ulid"
+	"github.com/oklog/ulid/v2"
+
+	"github.com/violin0622/ink-scroll/contents/app"
+	"github.com/violin0622/ink-scroll/contents/app/command"
+	contv1 "github.com/violin0622/ink-scroll/proto/gen/go/contents/v1"
+	ulidpb "github.com/violin0622/ink-scroll/proto/gen/go/ulid"
 )
 
 var _ contv1.CmdServiceServer = (*cmdServiceServer)(nil)
@@ -71,15 +73,12 @@ func (s *cmdServiceServer) UploadChapter(
 ) {
 	defer toStatus(&err)
 
-	id, err := s.ah.UploadChapter(ctx, command.UploadChapter{
-		NovelID:      req.GetNovelId().Into(),
-		Title:        req.GetTitle(),
-		MainContent:  req.GetMainContent(),
-		ExtraContent: req.GetExtraContent(),
+	err = s.ah.UploadChapter(ctx, command.UploadChapter{
+		NovelID: req.GetNovelId().Into(),
 	})
 	if err != nil {
-		return nil, (err)
+		return nil, err
 	}
 
-	return &contv1.UploadChapterResponse{Id: ulidpb.From(id)}, nil
+	return &contv1.UploadChapterResponse{Id: ulidpb.From(ulid.Zero)}, nil
 }

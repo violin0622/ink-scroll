@@ -31,3 +31,12 @@ func FormatEvent[AID, EID comparable](e Event[AID, EID]) string {
 func Fullname[AID, EID comparable](d string, e Event[AID, EID]) string {
 	return fmt.Sprintf(`%s.%s`, e.AggKind(), e.Kind())
 }
+
+type EventList[AID, EID comparable] struct {
+	events []Event[AID, EID]
+}
+
+func (el EventList[AID, EID]) Events() []Event[AID, EID] { return el.events }
+func (el *EventList[AID, EID]) Append(e Event[AID, EID]) {
+	el.events = append(el.events, e)
+}

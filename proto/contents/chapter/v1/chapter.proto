@@ -1,0 +1,8 @@
+syntax = "proto3";
+package contents.chapter.v1;
+
+import "google/protobuf/timestamp.proto";
+import "ulid/ulid.proto";
+
+option go_package = "contents/chapter/v1";
+message Chapter {}

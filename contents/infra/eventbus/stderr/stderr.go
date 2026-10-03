@@ -1,4 +1,4 @@
-// package stderr provides a event bus that logs all
+// Package stderr provides a event bus that logs all
 // consumed events to stderr in JSON, one per line.
 package stderr
 
@@ -9,9 +9,9 @@ import (
 
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"play-ddd/contents/infra/outbox"
-	novelv1 "play-ddd/proto/gen/go/contents/novel/v1"
-	"play-ddd/utils/xslice"
+	"github.com/violin0622/ink-scroll/contents/infra/outbox"
+	novelv1 "github.com/violin0622/ink-scroll/proto/gen/go/contents/novel/v1"
+	"github.com/violin0622/ink-scroll/utils/xslice"
 )
 
 var _ outbox.EventBus = bus{}

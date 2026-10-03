@@ -8,9 +8,9 @@ package usersv1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	ulid "github.com/violin0622/ink-scroll/proto/gen/go/ulid"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	ulid "play-ddd/proto/gen/go/ulid"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -323,8 +323,8 @@ const file_users_v1_cmd_proto_rawDesc = "" +
 	"CmdService\x12;\n" +
 	"\x06SignUp\x12\x17.users.v1.SignUpRequest\x1a\x18.users.v1.SignUpResponse\x12;\n" +
 	"\x06SignIn\x12\x17.users.v1.SignInRequest\x1a\x18.users.v1.SignInResponse\x12>\n" +
-	"\aSignOut\x12\x18.users.v1.SignOutRequest\x1a\x19.users.v1.SignOutResponseB\x81\x01\n" +
-	"\fcom.users.v1B\bCmdProtoP\x01Z&play-ddd/proto/gen/go/users/v1;usersv1\xa2\x02\x03UXX\xaa\x02\bUsers.V1\xca\x02\bUsers\\V1\xe2\x02\x14Users\\V1\\GPBMetadata\xea\x02\tUsers::V1b\x06proto3"
+	"\aSignOut\x12\x18.users.v1.SignOutRequest\x1a\x19.users.v1.SignOutResponseB\x99\x01\n" +
+	"\fcom.users.v1B\bCmdProtoP\x01Z>github.com/violin0622/ink-scroll/proto/gen/go/users/v1;usersv1\xa2\x02\x03UXX\xaa\x02\bUsers.V1\xca\x02\bUsers\\V1\xe2\x02\x14Users\\V1\\GPBMetadata\xea\x02\tUsers::V1b\x06proto3"
 
 var (
 	file_users_v1_cmd_proto_rawDescOnce sync.Once

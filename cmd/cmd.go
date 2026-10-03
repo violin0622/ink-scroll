@@ -5,12 +5,12 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"play-ddd/cmd/contents"
+	"github.com/violin0622/ink-scroll/cmd/contents"
 )
 
 func New() *cobra.Command {
 	root := &cobra.Command{
-		Use:     `play-ddd`,
+		Use:     `github.com/violin0622/ink-scroll`,
 		Short:   `Play DDD Example Program.`,
 		Long:    slogan,
 		Version: fmt.Sprintf(versionTpl, Version, GitSHA, GoVersion, BuiltAt),

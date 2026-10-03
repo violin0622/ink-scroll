@@ -11,10 +11,10 @@ import (
 	. "github.com/onsi/gomega"
 	"gorm.io/gorm"
 
-	"play-ddd/contents/domain/novel"
-	"play-ddd/contents/domain/novel/vo"
-	"play-ddd/contents/infra/repository/pg"
-	novelrepo "play-ddd/contents/infra/repository/pg/novel"
+	"github.com/violin0622/ink-scroll/contents/domain/novel"
+	"github.com/violin0622/ink-scroll/contents/domain/novel/vo"
+	"github.com/violin0622/ink-scroll/contents/infra/repository/pg"
+	novelrepo "github.com/violin0622/ink-scroll/contents/infra/repository/pg/novel"
 )
 
 func TestControllers(t *testing.T) {
@@ -64,6 +64,7 @@ var _ = Describe(`NoveRepo`, func() {
 			tags,
 			int(status),
 			url.URL{},
+			nil,
 			chapters,
 			wordCount,
 			updatedAt,
@@ -97,7 +98,6 @@ var _ = Describe(`NoveRepo`, func() {
 		for i, c := range chapters {
 			nc := novel.Chapters()[i]
 			Ω(nc.ID).Should(Equal(c.ID))
-			Ω(nc.Sequence).Should(Equal(c.Sequence))
 		}
 	})
 })

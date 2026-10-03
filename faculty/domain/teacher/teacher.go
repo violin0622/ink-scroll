@@ -5,9 +5,9 @@ import (
 
 	"github.com/oklog/ulid/v2"
 
-	"play-ddd/common"
-	ev "play-ddd/faculty/domain/teacher/events"
-	"play-ddd/faculty/domain/teacher/vo"
+	"github.com/violin0622/ink-scroll/common"
+	ev "github.com/violin0622/ink-scroll/faculty/domain/teacher/events"
+	"github.com/violin0622/ink-scroll/faculty/domain/teacher/vo"
 )
 
 var _ Aggregate = (*Teacher)(nil)

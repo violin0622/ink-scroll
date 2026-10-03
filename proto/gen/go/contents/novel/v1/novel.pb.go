@@ -7,10 +7,10 @@
 package novelv1
 
 import (
+	ulid "github.com/violin0622/ink-scroll/proto/gen/go/ulid"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
-	ulid "play-ddd/proto/gen/go/ulid"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -468,9 +468,9 @@ const file_contents_novel_v1_novel_proto_rawDesc = "" +
 	"\x12NovelViolationType\x12$\n" +
 	" NOVEL_VIOLATION_TYPE_UNSPECIFIED\x10\x00\x12'\n" +
 	"#NOVEL_VIOLATION_TYPE_VOLUME_CHAPTER\x10\x01\x12%\n" +
-	"!NOVEL_VIOLATION_TYPE_VOLUME_EMPTY\x10\x02B\xba\x01\n" +
+	"!NOVEL_VIOLATION_TYPE_VOLUME_EMPTY\x10\x02B\xd2\x01\n" +
 	"\x15com.contents.novel.v1B\n" +
-	"NovelProtoP\x01Z/play-ddd/proto/gen/go/contents/novel/v1;novelv1\xa2\x02\x03CNX\xaa\x02\x11Contents.Novel.V1\xca\x02\x11Contents\\Novel\\V1\xe2\x02\x1dContents\\Novel\\V1\\GPBMetadata\xea\x02\x13Contents::Novel::V1b\x06proto3"
+	"NovelProtoP\x01ZGgithub.com/violin0622/ink-scroll/proto/gen/go/contents/novel/v1;novelv1\xa2\x02\x03CNX\xaa\x02\x11Contents.Novel.V1\xca\x02\x11Contents\\Novel\\V1\xe2\x02\x1dContents\\Novel\\V1\\GPBMetadata\xea\x02\x13Contents::Novel::V1b\x06proto3"
 
 var (
 	file_contents_novel_v1_novel_proto_rawDescOnce sync.Once

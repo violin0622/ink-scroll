@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/protoadapt"
 
-	"play-ddd/contents/infra/server/stats"
+	"github.com/violin0622/ink-scroll/contents/infra/server/stats"
 )
 
 type RequestLimiter interface {

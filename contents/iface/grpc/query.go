@@ -1,8 +1,8 @@
 package grpc
 
 import (
-	"play-ddd/contents/app"
-	contv1 "play-ddd/proto/gen/go/contents/v1"
+	"github.com/violin0622/ink-scroll/contents/app"
+	contv1 "github.com/violin0622/ink-scroll/proto/gen/go/contents/v1"
 )
 
 type Query struct {

@@ -4,7 +4,7 @@ import (
 	"slices"
 	"testing"
 
-	"play-ddd/contents/domain/novel/vo"
+	"github.com/violin0622/ink-scroll/contents/domain/novel/vo"
 )
 
 func TestDiffTags(t *testing.T) {

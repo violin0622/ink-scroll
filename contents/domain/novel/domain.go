@@ -3,7 +3,7 @@ package novel
 import (
 	"github.com/oklog/ulid/v2"
 
-	"play-ddd/common"
+	"github.com/violin0622/ink-scroll/common"
 )
 
 type (

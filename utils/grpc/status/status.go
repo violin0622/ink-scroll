@@ -205,7 +205,7 @@ func (b *builder) WithErrorInfo(
 func (b *builder) WithBadRequestFieldViolation(field, desc string) *builder {
 	br := b.badRequest()
 	br.FieldViolations = append(
-		br.FieldViolations,
+		br.GetFieldViolations(),
 		&epb.BadRequest_FieldViolation{
 			Field:       field,
 			Description: desc,
@@ -218,18 +218,21 @@ func (b *builder) WithPreconditionViolation(
 	typ, subject, desc string,
 ) *builder {
 	pf := b.preconditionFailure()
-	pf.Violations = append(pf.Violations, &epb.PreconditionFailure_Violation{
-		Type:        typ,
-		Subject:     subject,
-		Description: desc,
-	})
+	pf.Violations = append(
+		pf.GetViolations(),
+		&epb.PreconditionFailure_Violation{
+			Type:        typ,
+			Subject:     subject,
+			Description: desc,
+		},
+	)
 
 	return b
 }
 
 func (b *builder) WithQuotaViolation(subject, desc string) *builder {
 	qf := b.quotaFailure()
-	qf.Violations = append(qf.Violations, &epb.QuotaFailure_Violation{
+	qf.Violations = append(qf.GetViolations(), &epb.QuotaFailure_Violation{
 		Subject:     subject,
 		Description: desc,
 	})
@@ -249,7 +252,7 @@ func (b *builder) WithDebugInfo(stackEntries []string, detail string) *builder {
 
 func (b *builder) WithHelpLink(desc, url string) *builder {
 	help := b.help()
-	help.Links = append(help.Links, &epb.Help_Link{
+	help.Links = append(help.GetLinks(), &epb.Help_Link{
 		Description: desc,
 		Url:         url,
 	})

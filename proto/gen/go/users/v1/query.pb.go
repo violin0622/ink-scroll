@@ -8,9 +8,9 @@ package usersv1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	ulid "github.com/violin0622/ink-scroll/proto/gen/go/ulid"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	ulid "play-ddd/proto/gen/go/ulid"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -198,9 +198,9 @@ const file_users_v1_query_proto_rawDesc = "" +
 	"\x11GetMyInfoResponse2\x94\x01\n" +
 	"\fQueryService\x12>\n" +
 	"\aGetUser\x12\x18.users.v1.GetUserRequest\x1a\x19.users.v1.GetUserResponse\x12D\n" +
-	"\tGetMyInfo\x12\x1a.users.v1.GetMyInfoRequest\x1a\x1b.users.v1.GetMyInfoResponseB\x83\x01\n" +
+	"\tGetMyInfo\x12\x1a.users.v1.GetMyInfoRequest\x1a\x1b.users.v1.GetMyInfoResponseB\x9b\x01\n" +
 	"\fcom.users.v1B\n" +
-	"QueryProtoP\x01Z&play-ddd/proto/gen/go/users/v1;usersv1\xa2\x02\x03UXX\xaa\x02\bUsers.V1\xca\x02\bUsers\\V1\xe2\x02\x14Users\\V1\\GPBMetadata\xea\x02\tUsers::V1b\x06proto3"
+	"QueryProtoP\x01Z>github.com/violin0622/ink-scroll/proto/gen/go/users/v1;usersv1\xa2\x02\x03UXX\xaa\x02\bUsers.V1\xca\x02\bUsers\\V1\xe2\x02\x14Users\\V1\\GPBMetadata\xea\x02\tUsers::V1b\x06proto3"
 
 var (
 	file_users_v1_query_proto_rawDescOnce sync.Once
