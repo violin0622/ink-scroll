@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/violin0622/ink-scroll/contents/app/command"
+	"github.com/violin0622/ink-scroll/contents/domain/chapter"
 	"github.com/violin0622/ink-scroll/contents/domain/novel"
 	novelvo "github.com/violin0622/ink-scroll/contents/domain/novel/vo"
 	"github.com/violin0622/ink-scroll/utils/retry"
@@ -39,6 +40,22 @@ func (s *CommandHandler) CreateNovel(
 		return novel.ZeroID, fmt.Errorf(`create novel: %w`, err)
 	}
 	return id, err
+}
+
+func (s *CommandHandler) LockDraft() {}
+
+func (s *CommandHandler) CreateDraft(
+	ctx context.Context, cmd command.CreateDraft,
+) (id chapter.ID, err error) {
+	d, err := s.df.NewDraft(ctx, cmd.Title, cmd.MainContent, cmd.ExtraContent)
+	if err != nil {
+		return id, err
+	}
+	if err = s.repo.Draft().Save(ctx, d); err != nil {
+		return id, err
+	}
+
+	return d.ID(), nil
 }
 
 func (s *CommandHandler) createNovel(
@@ -102,42 +119,94 @@ func ensureNovelTitleAvailable(
 }
 
 // UploadChapter 先后更新 Chapter 和 Novel 聚合。
-func (s *CommandHandler) UploadChapter(
-	ctx context.Context, cmd command.UploadChapter) (
-	err error,
+// func (s *CommandHandler) UploadChapter(
+// 	ctx context.Context, cmd command.UploadChapter) (
+// 	err error,
+// ) {
+// 	err = s.repo.Tx(func(tx Repo) error {
+// 		n, err := tx.Novel().Get(ctx, cmd.NovelID)
+// 		if err != nil {
+// 			return err
+// 		}
+//
+// 		c, err := tx.Chapter().Get(ctx, cmd.ChapterID)
+// 		if err != nil {
+// 			return err
+// 		}
+//
+// 		err = n.UploadChapter(ctx, novel.UpdateArg{
+// 			ChapterID:  c.ID(),
+// 			VolumeID:   cmd.VolumeID,
+// 			WordCount:  c.WordCount(),
+// 			ReleasedAt: c.ReleaseAt(),
+// 		})
+// 		if err != nil {
+// 			return err
+// 		}
+//
+// 		err = tx.Novel().Save(ctx, n)
+// 		if err != nil {
+// 			return err
+// 		}
+//
+// 		return nil
+// 	})
+// 	if err != nil {
+// 		return fmt.Errorf(`upload chapter: %w`, err)
+// 	}
+//
+// 	return nil
+// }
+
+func (s *CommandHandler) CreateChapterFromDraft(
+	ctx context.Context, cmd command.CreateChapterFromDraft) (
+	id chapter.ID, err error,
 ) {
-	err = s.repo.Tx(func(tx Repo) error {
-		n, err := tx.Novel().Get(ctx, cmd.NovelID)
-		if err != nil {
-			return err
-		}
-
-		c, err := tx.Chapter().Get(ctx, cmd.ChapterID)
-		if err != nil {
-			return err
-		}
-
-		err = n.UploadChapter(ctx, novel.UpdateArg{
-			ChapterID:  c.ID(),
-			VolumeID:   cmd.VolumeID,
-			WordCount:  c.WordCount(),
-			ReleasedAt: c.ReleaseAt(),
-		})
-		if err != nil {
-			return err
-		}
-
-		err = tx.Novel().Save(ctx, n)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
+	d, err := s.repo.Draft().Get(ctx, cmd.DraftID)
 	if err != nil {
-		return fmt.Errorf(`upload chapter: %w`, err)
+		return id, err
 	}
 
+	c, err := s.cf.UploadChapter(
+		ctx,
+		d.NovelID(),
+		d.VolumeID(),
+		d.Title(),
+		d.MainContent(),
+		d.ExtraContent())
+	if err != nil {
+		return id, err
+	}
+
+	if err = s.repo.Chapter().Save(ctx, c); err != nil {
+		return id, err
+	}
+
+	return c.ID(), nil
+}
+
+func (s *CommandHandler) UploadChapter(
+	ctx context.Context, cmd command.UploadChapter,
+) error {
+	n, err := s.repo.Novel().Get(ctx, cmd.NovelID)
+	if err != nil {
+		return err
+	}
+
+	c, err := s.repo.Chapter().Get(ctx, cmd.ChapterID)
+	if err != nil {
+		return err
+	}
+
+	err = n.UploadChapter(ctx, novel.UpdateArg{
+		ChapterID:  cmd.ChapterID,
+		VolumeID:   cmd.VolumeID,
+		WordCount:  c.WordCount(),
+		ReleasedAt: c.ReleaseAt(),
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

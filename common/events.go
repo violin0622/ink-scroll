@@ -18,6 +18,34 @@ type Event[AID, EID comparable] interface {
 	// Restore([]byte) error
 }
 
+type BaseEvent[AID, EID comparable] struct {
+	id            EID
+	aid           AID
+	at            time.Time
+	kind, aggkind string
+}
+
+func NewBaseEvent[AID, EID comparable](
+	id EID, aid AID, kind, aggKind string,
+) BaseEvent[AID, EID] {
+	return BaseEvent[AID, EID]{
+		id:      id,
+		aid:     aid,
+		at:      time.Now(),
+		kind:    kind,
+		aggkind: aggKind,
+	}
+}
+
+func (e BaseEvent[AID, EID]) ID() EID              { return e.id }
+func (e BaseEvent[AID, EID]) AggID() AID           { return e.aid }
+func (e BaseEvent[AID, EID]) Kind() string         { return e.kind }
+func (e BaseEvent[AID, EID]) AggKind() string      { return e.aggkind }
+func (e BaseEvent[AID, EID]) EmittedAt() time.Time { return e.at }
+func (e BaseEvent[AID, EID]) String() string       { return FormatEvent(e) }
+
+func (e BaseEvent[AID, EID]) Payload() ([]byte, error) { panic("unimplemented") }
+
 type EventRepo[EID, AID comparable] interface {
 	// Fetch(context.Context, AID) ([]Event[EID, AID], error)
 	Append(context.Context, ...Event[EID, AID]) error

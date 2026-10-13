@@ -26,35 +26,26 @@ func (f Factory) WithEventRepo(er EventRepo) Factory {
 
 func (cf Factory) UploadChapter(
 	ctx context.Context,
-	seq int,
+	nid, vid ID,
 	title, mainContent, exContent string) (
-	Chapter, error,
+	c Chapter, err error,
 ) {
-	if seq < 1 {
-		return Chapter{}, fmt.Errorf(`invalid sequence`)
-	}
+	c.er = cf.er
 
-	c := Chapter{
-		id:           ulid.Make(),
-		seq:          seq,
-		title:        title,
-		mainContent:  mainContent,
-		extraContent: exContent,
-		er:           cf.er,
-	}
+	e := NewChapterUploaded(ulid.Make(),
+		title,
+		mainContent,
+		exContent,
+		nid, vid,
+	)
 
-	err := cf.er.Append(ctx, ChapterUploaded{
-		id:  ulid.Make(),
-		aid: c.id,
-		at:  Now(),
-		// Seq:          seq,
-		Title:        c.title,
-		MainContent:  c.mainContent,
-		ExtraContent: c.extraContent,
-		WordCount:    countWords(c.mainContent),
-	})
-	if err != nil {
+	if err = c.imposeUploadedEvent(e); err != nil {
 		return Chapter{}, fmt.Errorf(`upload chapter: %w`, err)
 	}
+
+	if err = c.finish(ctx, e); err != nil {
+		return Chapter{}, fmt.Errorf(`upload chapter: %w`, err)
+	}
+
 	return c, nil
 }

@@ -81,7 +81,7 @@ func (f Factory) Create(
 		return Novel{}, fmt.Errorf(`create new novel: %w`, err)
 	}
 
-	e := ev.NewNovelCreatedV2(
+	e := ev.NewNovelCreated(
 		novel.id,
 		authorID,
 		novel.title,

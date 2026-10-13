@@ -6,12 +6,14 @@ import (
 	"github.com/go-logr/logr"
 
 	"github.com/violin0622/ink-scroll/contents/domain/chapter"
+	"github.com/violin0622/ink-scroll/contents/domain/draft"
 	"github.com/violin0622/ink-scroll/contents/domain/novel"
 )
 
 type CommandHandler struct {
 	novelFact novel.Factory
 	cf        chapter.Factory
+	df        draft.Factory
 	repo      Repo
 	log       logr.Logger
 
@@ -47,10 +49,17 @@ type QueryHandler struct {
 }
 
 type Repo interface {
+	Draft() AggRepo[draft.Draft, draft.ID]
 	Chapter() ChapterRepo
 	Novel() NovelRepo
+
 	Event() novel.EventRepo
 	Tx(func(Repo) error) error
+}
+
+type AggRepo[A any, B comparable] interface {
+	Get(context.Context, B) (A, error)
+	Save(context.Context, A) error
 }
 
 type ChapterRepo interface {

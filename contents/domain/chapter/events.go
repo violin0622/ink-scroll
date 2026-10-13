@@ -2,85 +2,63 @@ package chapter
 
 import (
 	"encoding/json"
-	"time"
 
 	"github.com/oklog/ulid/v2"
 
 	"github.com/violin0622/ink-scroll/common"
-	"github.com/violin0622/ink-scroll/contents/domain/novel/vo"
 )
 
 var formatEvent = common.FormatEvent[ID, ID]
 
-var _ Event = (*ChapterRevised)(nil)
+var (
+	_ Event = (*ChapterRevised)(nil)
+	_ Event = (*ChapterUploaded)(nil)
+)
 
 type ChapterRevised struct {
-	id           ID
-	aid          ID
-	at           time.Time
-	Seq          int
+	common.BaseEvent[ID, ID]
+
 	Title        string
 	MainContent  string
 	ExtraContent string
 }
 
-func NewChapterRevised(aid ID, c vo.Chapter) ChapterRevised {
+func NewChapterRevised(
+	aid ID,
+	title, main, extra string,
+) ChapterRevised {
 	return ChapterRevised{
-		id:  ulid.Make(),
-		at:  time.Now(),
-		aid: aid,
+		BaseEvent: common.NewBaseEvent(ulid.Make(), aid, `Chapter`, `ChapterRevised`),
+
+		Title:        title,
+		MainContent:  main,
+		ExtraContent: extra,
 	}
 }
 
-func (t ChapterRevised) AggID() ID                { return t.aid }
-func (t ChapterRevised) AggKind() string          { return `Chapter` }
-func (t ChapterRevised) EmittedAt() time.Time     { return t.at }
-func (t ChapterRevised) ID() ID                   { return t.id }
-func (t ChapterRevised) Kind() string             { return `ChapterRevised` }
-func (t ChapterRevised) String() string           { return formatEvent(t) }
 func (t ChapterRevised) Payload() ([]byte, error) { return json.Marshal(t) }
 
-// var _ Event = ChapterUploaded{}
+type ChapterUploaded struct {
+	common.BaseEvent[ID, ID]
 
-// type ChapterUploaded struct {
-// 	id  ID
-// 	aid ID
-// 	at  time.Time
-//
-// 	// Seq               int
-// 	Title             string
-// 	MainContent       string
-// 	ExtraContent      string
-// 	WordCount         int
-// 	NovelID, VolumeID ID
-// }
-//
-// func (t ChapterUploaded) AggID() ID                { return t.aid }
-// func (t ChapterUploaded) AggKind() string          { return `Chapter` }
-// func (t ChapterUploaded) EmittedAt() time.Time     { return t.at }
-// func (t ChapterUploaded) ID() ID                   { return t.id }
-// func (t ChapterUploaded) Kind() string             { return `ChapterUploaded`
-// }
-// func (t ChapterUploaded) String() string           { return formatEvent(t) }
-// func (t ChapterUploaded) Payload() ([]byte, error) { return json.Marshal(t) }
+	Title             string
+	MainContent       string
+	ExtraContent      string
+	WordCount         int
+	NovelID, VolumeID ID
+}
 
-// func NewChapterUploadedV2(
-// 	aid ID, title, main, extra string, nid, vid ID,
-// ) ChapterUploadedV2 {
-// 	return event.NewBase(
-// 		ulid.Make(),
-// 		aid,
-// 		`uploaded`,
-// 		`chapter`,
-// 		&chapterv1.UploadedPayload{
-// 			Title:        title,
-// 			MainContent:  main,
-// 			ExtraContent: extra,
-// 			NovelId:      ulidpb.From(nid),
-// 			VolumeId:     ulidpb.From(vid),
-// 		},
-// 	)
-// }
-//
-// type ChapterUploadedV2 = event.Base[chapterv1.UploadedPayload,
-// *chapterv1.UploadedPayload]
+func NewChapterUploaded(aid ID, title, main, extra string, nid, vid ID) ChapterUploaded {
+	return ChapterUploaded{
+		BaseEvent: common.NewBaseEvent(ulid.Make(), aid, `Chapter`, `ChapterUploaded`),
+
+		Title:        title,
+		MainContent:  main,
+		ExtraContent: extra,
+		NovelID:      nid,
+		WordCount:    countWords(main),
+		VolumeID:     vid,
+	}
+}
+
+func (c ChapterUploaded) Payload() ([]byte, error) { return json.Marshal(c) }
