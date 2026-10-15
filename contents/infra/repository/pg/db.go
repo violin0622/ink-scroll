@@ -11,6 +11,7 @@ import (
 
 	"github.com/violin0622/ink-scroll/contents/app"
 	"github.com/violin0622/ink-scroll/contents/domain/chapter"
+	"github.com/violin0622/ink-scroll/contents/domain/draft"
 	"github.com/violin0622/ink-scroll/contents/domain/novel"
 	"github.com/violin0622/ink-scroll/contents/infra/outbox"
 	pgevent "github.com/violin0622/ink-scroll/contents/infra/repository/pg/event"
@@ -65,15 +66,16 @@ func (g postgresRepo) fork(db *gorm.DB) postgresRepo {
 type postgresRepo struct {
 	novelFac    novel.Factory
 	chapterFact chapter.Factory
+	draftFact   draft.Factory
 
 	db *gorm.DB
 }
 
-func (g postgresRepo) Event() novel.EventRepo   { return pgevent.New(g.db) }
-func (g postgresRepo) Chapter() app.ChapterRepo { panic(`unimplemented`) }
-func (g postgresRepo) Outbox() outbox.EventRepo { return pgevent.New(g.db) }
-
-func (g postgresRepo) Novel() app.NovelRepo { return pgnovel.New(g.db, g.novelFac) }
+func (g postgresRepo) Event() novel.EventRepo                    { return pgevent.New(g.db) }
+func (g postgresRepo) Chapter() app.ChapterRepo                  { panic(`unimplemented`) }
+func (g postgresRepo) Draft() app.AggRepo[draft.Draft, draft.ID] { panic(`unimplemented`) }
+func (g postgresRepo) Novel() app.NovelRepo                      { return pgnovel.New(g.db, g.novelFac) }
+func (g postgresRepo) Outbox() outbox.EventRepo                  { return pgevent.New(g.db) }
 func (g postgresRepo) Tx(fn func(app.Repo) error) error {
 	return g.db.Transaction(func(tx *gorm.DB) error {
 		return fn(g.fork(tx))

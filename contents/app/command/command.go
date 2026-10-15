@@ -23,8 +23,16 @@ type CreateDraft struct {
 	ExtraContent      string
 }
 
-type CreateChapterFromDraft struct {
+type DeleteDraft struct {
+	ID draft.ID
+}
+
+type CreateChapter struct {
 	DraftID draft.ID
+}
+
+type DeleteChapter struct {
+	ID chapter.ID
 }
 
 type UploadChapter struct {
@@ -37,4 +45,12 @@ type UpdateNovelInfo struct {
 	NovelID novel.ID
 	Desc    string
 	Tags    []string
+}
+
+type LockDraft struct {
+	ID draft.ID
+}
+
+type UnlockDraft struct {
+	ID draft.ID
 }

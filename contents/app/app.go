@@ -60,6 +60,7 @@ type Repo interface {
 type AggRepo[A any, B comparable] interface {
 	Get(context.Context, B) (A, error)
 	Save(context.Context, A) error
+	Drop(context.Context, A) error
 }
 
 type ChapterRepo interface {

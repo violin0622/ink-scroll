@@ -42,7 +42,17 @@ func (s *CommandHandler) CreateNovel(
 	return id, err
 }
 
-func (s *CommandHandler) LockDraft() {}
+func (s *CommandHandler) LockDraft(
+	ctx context.Context, cmd command.LockDraft,
+) error {
+	return nil
+}
+
+func (s *CommandHandler) UnlockDraft(
+	ctx context.Context, cmd command.UnlockDraft,
+) error {
+	return nil
+}
 
 func (s *CommandHandler) CreateDraft(
 	ctx context.Context, cmd command.CreateDraft,
@@ -56,6 +66,18 @@ func (s *CommandHandler) CreateDraft(
 	}
 
 	return d.ID(), nil
+}
+
+func (s *CommandHandler) DeleteDraft(
+	ctx context.Context, cmd command.DeleteDraft,
+) error {
+	return nil
+}
+
+func (s *CommandHandler) DeleteChapter(
+	ctx context.Context, cmd command.DeleteChapter,
+) error {
+	return nil
 }
 
 func (s *CommandHandler) createNovel(
@@ -158,8 +180,8 @@ func ensureNovelTitleAvailable(
 // 	return nil
 // }
 
-func (s *CommandHandler) CreateChapterFromDraft(
-	ctx context.Context, cmd command.CreateChapterFromDraft) (
+func (s *CommandHandler) CreateChapter(
+	ctx context.Context, cmd command.CreateChapter) (
 	id chapter.ID, err error,
 ) {
 	d, err := s.repo.Draft().Get(ctx, cmd.DraftID)

@@ -20,7 +20,7 @@ func PublishDraft(ctx context.Context, id draft.ID) error {
 	ach.LockDraft()
 
 	// step 2
-	cid, err := ach.CreateChapterFromDraft(ctx, command.CreateChapterFromDraft{
+	cid, err := ach.CreateChapter(ctx, command.CreateChapter{
 		DraftID: id,
 	})
 	if err != nil {

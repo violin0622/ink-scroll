@@ -2,16 +2,15 @@ package event
 
 import (
 	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/violin0622/ink-scroll/common"
 	"github.com/violin0622/ink-scroll/contents/domain/novel"
 	"github.com/violin0622/ink-scroll/contents/infra/repository/pg/datatypes/ts"
 	dtulid "github.com/violin0622/ink-scroll/contents/infra/repository/pg/datatypes/ulid"
 	novelv1 "github.com/violin0622/ink-scroll/proto/gen/go/contents/novel/v1"
 	ulidpb "github.com/violin0622/ink-scroll/proto/gen/go/ulid"
-	"github.com/violin0622/ink-scroll/utils/event"
 )
 
 type (
@@ -32,7 +31,7 @@ type (
 )
 
 func (e *Event) FromDomain(
-	de event.Base[proto.Message, novel.ID, novel.ID],
+	de common.Event[novel.ID, novel.ID],
 ) (err error) {
 	if e == nil {
 		return nil
@@ -43,7 +42,8 @@ func (e *Event) FromDomain(
 	e.Kind = de.Kind()
 	e.AggregateKind = de.AggKind()
 	e.CreatedTS = ts.From(de.EmittedAt())
-	e.Payload, err = proto.Marshal(de.Payload())
+	e.Payload, err = de.Payload()
+	// e.Payload, err = proto.Marshal(de.Payload())
 	return err
 }
 
