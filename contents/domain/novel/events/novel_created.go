@@ -1,15 +1,17 @@
 package events
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/samber/lo"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/violin0622/ink-scroll/contents/domain/novel/vo"
 	novelv1 "github.com/violin0622/ink-scroll/proto/gen/go/contents/novel/v1"
 	eventv1 "github.com/violin0622/ink-scroll/proto/gen/go/event/v1"
+	pbuild "github.com/violin0622/ink-scroll/proto/gen/go/ulid"
 )
 
 // var _ fromPB[novelv1.NovelCreated] = NovelCreated{}
@@ -53,13 +55,28 @@ func NewNovelCreated(
 	}
 }
 
-func (t NovelCreated) AggID() ID                { return t.aid }
-func (t NovelCreated) AggKind() string          { return `Novel` }
-func (t NovelCreated) EmittedAt() time.Time     { return t.at }
-func (t NovelCreated) ID() ID                   { return t.id }
-func (t NovelCreated) Kind() string             { return `NovelCreated` }
-func (t NovelCreated) String() string           { return formatEvent(t) }
-func (t NovelCreated) Payload() ([]byte, error) { return json.Marshal(t) }
+func (t NovelCreated) AggID() ID            { return t.aid }
+func (t NovelCreated) AggKind() string      { return `Novel` }
+func (t NovelCreated) EmittedAt() time.Time { return t.at }
+func (t NovelCreated) ID() ID               { return t.id }
+func (t NovelCreated) Kind() string         { return `NovelCreated` }
+func (t NovelCreated) String() string       { return formatEvent(t) }
+func (t NovelCreated) Payload() ([]byte, error) {
+	p := novelv1.NovelCreatedPayload{
+		AuthorId:    pbuild.From(t.AuthorID),
+		Title:       string(t.Title),
+		Description: string(t.Desc),
+		Tags:        lo.Map(t.Tags, func(t vo.Tag, _ int) string { return string(t) }),
+		Category:    string(t.Category),
+	}
+
+	a, err := anypb.New(&p)
+	if err != nil {
+		return nil, err
+	}
+	return protojson.Marshal(a)
+}
+
 func (t *NovelCreated) FromPB(e *eventv1.Event) error {
 	t.id = e.GetId().Into()
 	t.aid = e.GetAggregateId().Into()

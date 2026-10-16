@@ -7,7 +7,7 @@ import (
 
 	"github.com/violin0622/ink-scroll/common"
 	"github.com/violin0622/ink-scroll/contents/domain/novel"
-	"github.com/violin0622/ink-scroll/contents/infra/repository/pg/datatypes/ts"
+	dtts "github.com/violin0622/ink-scroll/contents/infra/repository/pg/datatypes/ts"
 	dtulid "github.com/violin0622/ink-scroll/contents/infra/repository/pg/datatypes/ulid"
 	novelv1 "github.com/violin0622/ink-scroll/proto/gen/go/contents/novel/v1"
 	ulidpb "github.com/violin0622/ink-scroll/proto/gen/go/ulid"
@@ -17,8 +17,8 @@ type (
 	ID    = dtulid.ULID
 	Event struct {
 		ID            ID `gorm:"primarykey"`
-		CreatedTS     ts.Timestamp
-		UpdatedTS     ts.Timestamp
+		CreatedTS     dtts.Timestamp
+		UpdatedTS     dtts.Timestamp
 		AggregateID   ID
 		AggregateKind string
 		Kind          string
@@ -41,7 +41,7 @@ func (e *Event) FromDomain(
 	e.AggregateID = ID(de.AggID())
 	e.Kind = de.Kind()
 	e.AggregateKind = de.AggKind()
-	e.CreatedTS = ts.From(de.EmittedAt())
+	e.CreatedTS = dtts.From(de.EmittedAt())
 	e.Payload, err = de.Payload()
 	// e.Payload, err = proto.Marshal(de.Payload())
 	return err

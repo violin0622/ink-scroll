@@ -7,6 +7,7 @@ import (
 	"github.com/oklog/ulid/v2"
 
 	"github.com/violin0622/ink-scroll/contents/domain"
+	"github.com/violin0622/ink-scroll/contents/domain/novel"
 )
 
 type (
@@ -31,9 +32,10 @@ func (f Factory) WithEventRepo(er EventRepo) Factory {
 
 func (f Factory) NewDraft(
 	ctx context.Context,
+	nid novel.ID, vid novel.ID,
 	title, main, ex string,
 ) (d Draft, err error) {
-	e := NewDraftCreated(ulid.Make(), title, main, ex)
+	e := NewDraftCreated(ulid.Make(), nid, vid, title, main, ex)
 	if err = d.imposeCreatedEvent(e); err != nil {
 		return d, err
 	}

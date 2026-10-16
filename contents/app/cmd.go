@@ -57,7 +57,12 @@ func (s *CommandHandler) UnlockDraft(
 func (s *CommandHandler) CreateDraft(
 	ctx context.Context, cmd command.CreateDraft,
 ) (id chapter.ID, err error) {
-	d, err := s.df.NewDraft(ctx, cmd.Title, cmd.MainContent, cmd.ExtraContent)
+	d, err := s.df.NewDraft(ctx,
+		cmd.NovelID,
+		cmd.VolumeID,
+		cmd.Title,
+		cmd.MainContent,
+		cmd.ExtraContent)
 	if err != nil {
 		return id, err
 	}
