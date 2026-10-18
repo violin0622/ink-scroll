@@ -32,7 +32,7 @@ func (f Factory) WithEventRepo(er EventRepo) Factory {
 
 func (f Factory) NewDraft(
 	ctx context.Context,
-	nid novel.ID, vid novel.ID,
+	nid, vid novel.ID,
 	title, main, ex string,
 ) (d Draft, err error) {
 	e := NewDraftCreated(ulid.Make(), nid, vid, title, main, ex)

@@ -66,8 +66,11 @@ func (t NovelCreated) Payload() ([]byte, error) {
 		AuthorId:    pbuild.From(t.AuthorID),
 		Title:       string(t.Title),
 		Description: string(t.Desc),
-		Tags:        lo.Map(t.Tags, func(t vo.Tag, _ int) string { return string(t) }),
-		Category:    string(t.Category),
+		Tags: lo.Map(
+			t.Tags,
+			func(t vo.Tag, _ int) string { return string(t) },
+		),
+		Category: string(t.Category),
 	}
 
 	a, err := anypb.New(&p)

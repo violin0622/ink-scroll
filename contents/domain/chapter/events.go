@@ -28,7 +28,12 @@ func NewChapterRevised(
 	title, main, extra string,
 ) ChapterRevised {
 	return ChapterRevised{
-		BaseEvent: common.NewBaseEvent(ulid.Make(), aid, `Chapter`, `ChapterRevised`),
+		BaseEvent: common.NewBaseEvent(
+			ulid.Make(),
+			aid,
+			`Chapter`,
+			`ChapterRevised`,
+		),
 
 		Title:        title,
 		MainContent:  main,
@@ -48,9 +53,18 @@ type ChapterUploaded struct {
 	NovelID, VolumeID ID
 }
 
-func NewChapterUploaded(aid ID, title, main, extra string, nid, vid ID) ChapterUploaded {
+func NewChapterUploaded(
+	aid ID,
+	title, main, extra string,
+	nid, vid ID,
+) ChapterUploaded {
 	return ChapterUploaded{
-		BaseEvent: common.NewBaseEvent(ulid.Make(), aid, `Chapter`, `ChapterUploaded`),
+		BaseEvent: common.NewBaseEvent(
+			ulid.Make(),
+			aid,
+			`Chapter`,
+			`ChapterUploaded`,
+		),
 
 		Title:        title,
 		MainContent:  main,

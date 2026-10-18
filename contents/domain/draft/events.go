@@ -27,7 +27,12 @@ type DraftCreated struct {
 
 func NewDraftCreated(aid, nid, vid ID, title, main, extra string) DraftCreated {
 	return DraftCreated{
-		BaseEvent:    common.NewBaseEvent(ulid.Make(), aid, `Draft`, `DraftCreated`),
+		BaseEvent: common.NewBaseEvent(
+			ulid.Make(),
+			aid,
+			`Draft`,
+			`DraftCreated`,
+		),
 		NovelID:      nid,
 		VolumeID:     vid,
 		Title:        title,

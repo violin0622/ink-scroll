@@ -71,11 +71,15 @@ type postgresRepo struct {
 	db *gorm.DB
 }
 
-func (g postgresRepo) Event() novel.EventRepo                    { return pgevent.New(g.db) }
-func (g postgresRepo) Chapter() app.ChapterRepo                  { panic(`unimplemented`) }
+func (g postgresRepo) Event() novel.EventRepo { return pgevent.New(g.db) }
+
+func (g postgresRepo) Chapter() app.ChapterRepo { panic(`unimplemented`) }
+
 func (g postgresRepo) Draft() app.AggRepo[draft.Draft, draft.ID] { panic(`unimplemented`) }
-func (g postgresRepo) Novel() app.NovelRepo                      { return pgnovel.New(g.db, g.novelFac) }
-func (g postgresRepo) Outbox() outbox.EventRepo                  { return pgevent.New(g.db) }
+
+func (g postgresRepo) Novel() app.NovelRepo { return pgnovel.New(g.db, g.novelFac) }
+
+func (g postgresRepo) Outbox() outbox.EventRepo { return pgevent.New(g.db) }
 func (g postgresRepo) Tx(fn func(app.Repo) error) error {
 	return g.db.Transaction(func(tx *gorm.DB) error {
 		return fn(g.fork(tx))
